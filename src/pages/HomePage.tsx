@@ -27,7 +27,6 @@ type Promo = {
   id: string;
   image: string;
   alt: string;
-  eyebrow: string;
   title: string;
   description: ReactNode;
   code: string;
@@ -44,7 +43,6 @@ const promos: Promo[] = [
     id: 'season20',
     image: '/images/promo-banner.webp',
     alt: 'Curated Spidy Clothing collection featuring cargo pants, linen shirts, and heavyweight tees',
-    eyebrow: 'SEASONAL EDIT · EXCLUSIVE',
     title: 'Essential fits, made to repeat.',
     description: <>Linen overshirts, relaxed cargos, tees. <strong>20% off</strong> above ₹1,499.</>,
     code: 'SEASON20',
@@ -59,7 +57,6 @@ const promos: Promo[] = [
     id: 'spidy10',
     image: '/images/campaign-overshirt.webp',
     alt: 'Model in a navy overshirt and relaxed denim',
-    eyebrow: 'FIRST ORDER · WELCOME',
     title: 'Everyday layers, sorted.',
     description: <>Breathable overshirts and easy tees for the week ahead. <strong>10% off</strong> your first order.</>,
     code: 'SPIDY10',
@@ -74,7 +71,6 @@ const promos: Promo[] = [
     id: 'welcome100',
     image: '/images/campaign-cargo.webp',
     alt: 'Model in a white tee and relaxed cargo trousers',
-    eyebrow: 'UTILITY EDIT · WELCOME',
     title: 'Utility, without the bulk.',
     description: <>Relaxed cargos with room to move. <strong>₹100 off</strong> your first order.</>,
     code: 'WELCOME100',
@@ -100,6 +96,8 @@ const values = [
   { icon: Repeat2, title: 'Made to repeat', note: 'Everyday pieces built to rotate through the week without losing shape.' },
   { icon: BadgeIndianRupee, title: 'Honest pricing', note: 'Direct-to-you pricing with no inflated tags and no seasonal markups.' },
 ];
+
+const tickerItems = ['SPIDY CLOTHING', 'MADE FOR EVERYDAY', 'GOOD CLOTHES. GOOD DAYS.'];
 
 const fits = [
   { name: 'Slim', note: 'Close through the chest and waist with a clean, tapered leg.' },
@@ -245,6 +243,19 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
         </div>
       </section>
 
+      <section className="home-ticker" aria-label="Spidy Clothing">
+        <div className="home-ticker-track" aria-hidden="true">
+          {[0, 1].map((group) => (
+            <div className="home-ticker-group" key={group}>
+              {tickerItems.map((item) => <span className="home-ticker-item" key={item}>{item}<i aria-hidden="true"/></span>)}
+            </div>
+          ))}
+        </div>
+        <span className="sr-only">{tickerItems.join(' · ')}</span>
+      </section>
+
+      {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Trending now" description="Pieces getting noticed." products={trendingProducts} onQuickAdd={quickAdd} to="/shop?tag=new" action="Shop new" look="overshirt"/>}
+
       <section className="lookbook-section home-trust" aria-label="Why shop with Spidy" data-look="shirt">
         {benefits.map((benefit) => {
           const Icon = benefit.icon;
@@ -281,10 +292,6 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
                       <img loading="lazy" src={promo.image} alt={promo.alt} />
                     </div>
                     <div className="promo-content">
-                      <div className="promo-eyebrow">
-                        <Sparkles size={15} />
-                        <span>{promo.eyebrow}</span>
-                      </div>
                       <h2>{promo.title}</h2>
                       <p className="promo-description">{promo.description}</p>
                       <div className="promo-coupon-strip">
@@ -373,7 +380,6 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
         <div className="home-coupon"><code>SPIDY10</code><button type="button" onClick={() => void copyCoupon()}><Copy size={15}/> COPY CODE</button></div>
       </section>
 
-      {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Trending now" description="Pieces getting noticed." products={trendingProducts} onQuickAdd={quickAdd} to="/shop?tag=new" action="Shop new" look="overshirt"/>}
       {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Most selling" description="Customer favourites in the rotation." products={mostSellingProducts} onQuickAdd={quickAdd} to="/shop" action="Shop all" look="cargo"/>}
 
       {loading && !list.length ? <SkeletonShelf/> : <section className="lookbook-section arrival-list" aria-labelledby="arrival-heading" data-look="shirt">

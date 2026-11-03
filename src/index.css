@@ -26,7 +26,7 @@
 :root{font-family:Switzer,Arial,sans-serif;color:#101b32;background:#f3f0e8;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;--paper:#f3f0e8;--navy:#0A1A3F;--crimson:#E02438;--ink:#101b32;--muted:#535c69;--line:#d5d1c8;--container:1280px;--radius:0;--shadow:none}
 html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
 .announcement{min-height:30px;background:var(--navy);color:#fff;font-size:13px;font-weight:400;letter-spacing:0;justify-content:flex-start;padding:4px clamp(18px,4vw,56px)}.announcement button{display:grid;place-items:center;top:3px;right:clamp(14px,4vw,48px);color:#fff}
-.site-header{height:72px;position:sticky;top:0;background:var(--paper);backdrop-filter:none;border:0;border-bottom:0;padding:0 clamp(18px,4vw,56px);z-index:30}.brand{gap:10px}.brand-mark{border-radius:0;background:var(--crimson);font-family:Switzer,Arial,sans-serif}.brand-text{font-family:Switzer,Arial,sans-serif;font-size:19px;font-weight:500;letter-spacing:-.04em}.brand-text>span{font-family:Switzer,Arial,sans-serif;font-weight:500;letter-spacing:.12em}.desktop-nav{gap:30px;margin-left:40px}.desktop-nav>a,.shop-menu-wrap>a{font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}.icon-button{color:var(--ink)}.count-badge{border-radius:0;background:var(--crimson)}
+.site-header{height:72px;position:sticky;top:0;background:var(--paper);backdrop-filter:none;border:0;border-bottom:0;padding:0 clamp(18px,4vw,56px);z-index:30}.brand{gap:10px}.brand-mark{border-radius:0;background:var(--crimson);font-family:Switzer,Arial,sans-serif}.brand-text{font-family:Switzer,Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-.04em}.brand-text>span{font-family:Switzer,Arial,sans-serif;font-weight:500;letter-spacing:.12em}.desktop-nav{gap:30px;margin-left:40px}.desktop-nav>a,.shop-menu-wrap>a{font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}.icon-button{color:var(--ink)}.count-badge{border-radius:0;background:var(--crimson)}
 .mega-menu{border:0;border-radius:0;box-shadow:none;background:var(--paper)}.mega-feature{border-radius:0;background:#e7e2d7}.mega-menu a{border:0;font-size:13px}.drawer-search{border-radius:0;background:#e7e2d7}.drawer-link{font-size:15px}.drawer-link svg{color:var(--crimson)}
 .home-lookbook{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;min-height:100vh}.lookbook-stage{position:sticky;top:88px;height:calc(100svh - 104px);min-height:560px;margin:16px 0 16px 16px;overflow:hidden;background:var(--navy);isolation:isolate}.lookbook-stage>img{width:100%;height:100%;object-fit:cover;object-position:50% 45%;animation:look-in .55s ease both}.lookbook-wordmark{position:absolute;left:clamp(18px,3vw,44px);bottom:clamp(20px,4vh,48px);color:#fff;font-size:clamp(64px,8vw,136px);font-weight:500;letter-spacing:-.075em;line-height:.75;pointer-events:none}.lookbook-caption{position:absolute;top:23px;left:clamp(18px,3vw,44px);color:#fff;font-size:14px;letter-spacing:.02em}.lookbook-copy{width:100%;max-width:760px;padding:clamp(28px,5vw,72px) clamp(28px,5.3vw,82px) 56px;}
 .lookbook-intro{min-height:calc(100svh - 104px);display:flex;flex-direction:column;justify-content:center;padding-block:30px 64px}.lookbook-overline{font-size:14px;letter-spacing:.04em;margin:0 0 22px}.lookbook-intro h1{max-width:8.7ch;margin:0;color:var(--navy);font-size:clamp(58px,6vw,88px);font-weight:400;letter-spacing:-.065em;line-height:.88;text-wrap:balance}.lookbook-lead{max-width:33ch;margin:26px 0 0;font-size:clamp(18px,1.6vw,22px);line-height:1.4;color:var(--ink)}.lookbook-actions{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:32px}.lookbook-primary{min-height:54px;padding:0 20px;background:var(--crimson);color:#fff;display:inline-flex;align-items:center;gap:22px;font-size:15px;font-weight:500}.lookbook-primary svg{transition:transform .2s ease}.lookbook-primary:hover svg{transform:translateX(4px)}.lookbook-text-link{font-size:15px;text-decoration:underline;text-underline-offset:4px}
@@ -226,6 +226,22 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
 .home-trust-item svg{flex:none;color:var(--crimson);margin-top:1px}
 .home-trust-item strong{display:block;color:var(--ink);font-size:13px;font-weight:500;line-height:1.3}
 .home-trust-item span{display:block;margin-top:2px;color:var(--muted);font-size:12px;line-height:1.35}
+
+.home-ticker{overflow:hidden;padding-block:22px;background:var(--navy);border-block:1px solid color-mix(in srgb,#fff 18%,transparent)}
+.home-ticker-track{display:flex;width:max-content;animation:home-ticker-scroll 34s linear infinite}
+.home-ticker-group{display:flex;align-items:center;gap:clamp(22px,3.4vw,46px);padding-right:clamp(22px,3.4vw,46px)}
+.home-ticker-item{display:inline-flex;align-items:center;gap:clamp(22px,3.4vw,46px);color:#fff;font-size:clamp(22px,3vw,38px);font-weight:400;letter-spacing:-.03em;line-height:1;white-space:nowrap}
+.home-ticker-item:nth-child(2){color:var(--crimson)}
+.home-ticker-item i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--crimson)}
+.home-ticker-item:nth-child(2) i{background:#fff}
+.home-ticker:hover .home-ticker-track{animation-play-state:paused}
+@keyframes home-ticker-scroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@media(prefers-reduced-motion:reduce){
+  .home-ticker-track{animation:none!important;width:100%;justify-content:center}
+  .home-ticker-group:last-child{display:none}
+  .home-ticker-group{flex-wrap:wrap;justify-content:center;gap:12px;padding-right:0}
+  .home-ticker-item{flex-wrap:wrap;justify-content:center;gap:12px;font-size:clamp(16px,2.6vw,24px);white-space:normal}
+}
 
 .home-offer{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:26px 30px!important;background:var(--navy);color:#fff;border:0}
 .home-offer-copy .eyebrow{margin:0 0 8px;color:#c9d2e3}
@@ -970,6 +986,126 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
   }
 }
 
+/* Compact promo banners — sized close to the "First order offer" strip. */
+.promo-card {
+  grid-template-columns: 34% 66%;
+  height: 150px;
+  min-height: 150px;
+  max-height: 150px;
+}
+.promo-content {
+  padding: 10px 16px;
+}
+.promo-content h2 {
+  font-size: clamp(20px, 1.9vw, 25px) !important;
+  margin: 0 0 2px !important;
+}
+.promo-description {
+  -webkit-line-clamp: 1;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  margin: 0 0 5px !important;
+}
+.promo-coupon-strip {
+  padding: 1px 3px 1px 8px;
+  margin-bottom: 5px;
+}
+.promo-coupon-label {
+  font-size: 7px;
+  letter-spacing: 0.9px;
+}
+.promo-coupon-code {
+  font-size: 12px;
+}
+.promo-copy-btn {
+  padding: 5px 8px;
+  font-size: 9px;
+}
+.promo-actions {
+  gap: 8px;
+  margin-bottom: 0;
+}
+.promo-cta-btn {
+  font-size: 10.5px !important;
+  padding: 5px 10px !important;
+}
+.promo-secondary-link {
+  font-size: 10.5px;
+}
+.promo-perks {
+  display: none;
+}
+.promo-media img {
+  object-position: 50% 32%;
+}
+
+@container promo (max-width: 430px) {
+  .promo-card {
+    grid-template-columns: 36% 64%;
+    height: 140px;
+    min-height: 140px;
+    max-height: 140px;
+  }
+  .promo-content {
+    padding: 9px 11px;
+  }
+  .promo-content h2 {
+    font-size: 16px !important;
+    line-height: 1.05 !important;
+    margin-bottom: 3px !important;
+  }
+  .promo-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 1;
+    font-size: 10.5px !important;
+    margin-bottom: 4px !important;
+  }
+  .promo-coupon-strip {
+    padding: 1px 2px 1px 6px;
+    gap: 4px;
+  }
+  .promo-coupon-label {
+    font-size: 6.5px;
+  }
+  .promo-coupon-code {
+    font-size: 10.5px;
+    letter-spacing: 0.8px;
+  }
+  .promo-copy-btn {
+    padding: 4px 5px;
+    font-size: 8px;
+  }
+  .promo-actions {
+    gap: 6px;
+  }
+  .promo-cta-btn {
+    font-size: 9.5px !important;
+    padding: 4px 8px !important;
+  }
+  .promo-secondary-link {
+    display: none;
+  }
+}
+
+@container promo (max-width: 340px) {
+  .promo-card {
+    grid-template-columns: 34% 66%;
+    height: 132px;
+    min-height: 132px;
+    max-height: 132px;
+  }
+  .promo-content {
+    padding: 8px 9px;
+  }
+  .promo-content h2 {
+    font-size: 14px !important;
+  }
+  .promo-description {
+    font-size: 10px !important;
+  }
+}
+
 /* Phone landscape: give the banner the full content width and keep it a
    short, wide rectangle rather than a tall box in the narrow column. */
 @media (orientation: landscape) and (max-height: 540px) and (max-width: 1000px) {
@@ -1017,11 +1153,11 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
     padding-block: 12px 24px;
   }
   .promo-card {
-    height: 280px;
-    min-height: 280px;
-    max-height: 280px;
+    height: 150px;
+    min-height: 150px;
+    max-height: 150px;
   }
   .promo-content {
-    padding: 14px 22px;
+    padding: 10px 18px;
   }
 }
