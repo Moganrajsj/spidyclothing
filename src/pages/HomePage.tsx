@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { FormEvent, KeyboardEvent } from 'react';
+import type { FormEvent, KeyboardEvent, ReactNode, TouchEvent } from 'react';
 import {
-  ArrowRight, BadgeIndianRupee, Banknote, ChevronLeft, ChevronRight, Clock3, Copy, Instagram,
-  Layers, MapPin, Repeat2, RotateCcw, Ruler, ShieldCheck, Sparkles, Truck, X,
+  ArrowRight, BadgeIndianRupee, Banknote, Check, ChevronLeft, ChevronRight, Clock3, Copy, Instagram,
+  Layers, MapPin, Pause, Play, Repeat2, RotateCcw, Ruler, ShieldCheck, Sparkles, Truck, X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Product } from '../types';
@@ -22,6 +22,70 @@ const looks = {
   olive: { src: '/images/campaign-olive.webp', alt: 'Model in an olive overshirt and black trousers' },
   cargo: { src: '/images/campaign-cargo.webp', alt: 'Model in a white tee and relaxed cargo trousers' },
 };
+
+type Promo = {
+  id: string;
+  image: string;
+  alt: string;
+  eyebrow: string;
+  title: string;
+  description: ReactNode;
+  code: string;
+  ctaLabel: string;
+  ctaTo: string;
+  ctaOffer: string;
+  secondaryLabel: string;
+  secondaryTo: string;
+  secondaryTarget: string;
+};
+
+const promos: Promo[] = [
+  {
+    id: 'season20',
+    image: '/images/promo-banner.webp',
+    alt: 'Curated Spidy Clothing collection featuring cargo pants, linen shirts, and heavyweight tees',
+    eyebrow: 'SEASONAL EDIT · EXCLUSIVE',
+    title: 'Essential fits, made to repeat.',
+    description: <>Linen overshirts, relaxed cargos, tees. <strong>20% off</strong> above ₹1,499.</>,
+    code: 'SEASON20',
+    ctaLabel: 'Shop the collection',
+    ctaTo: '/shop?tag=new',
+    ctaOffer: 'season20',
+    secondaryLabel: 'View cargo collection',
+    secondaryTo: '/shop/cargos',
+    secondaryTarget: 'shop_cargos',
+  },
+  {
+    id: 'spidy10',
+    image: '/images/campaign-overshirt.webp',
+    alt: 'Model in a navy overshirt and relaxed denim',
+    eyebrow: 'FIRST ORDER · WELCOME',
+    title: 'Everyday layers, sorted.',
+    description: <>Breathable overshirts and easy tees for the week ahead. <strong>10% off</strong> your first order.</>,
+    code: 'SPIDY10',
+    ctaLabel: 'Shop new arrivals',
+    ctaTo: '/shop?tag=new',
+    ctaOffer: 'spidy10',
+    secondaryLabel: 'Browse shirts',
+    secondaryTo: '/shop/shirts',
+    secondaryTarget: 'shop_shirts',
+  },
+  {
+    id: 'welcome100',
+    image: '/images/campaign-cargo.webp',
+    alt: 'Model in a white tee and relaxed cargo trousers',
+    eyebrow: 'UTILITY EDIT · WELCOME',
+    title: 'Utility, without the bulk.',
+    description: <>Relaxed cargos with room to move. <strong>₹100 off</strong> your first order.</>,
+    code: 'WELCOME100',
+    ctaLabel: 'Shop cargos',
+    ctaTo: '/shop/cargos',
+    ctaOffer: 'welcome100',
+    secondaryLabel: 'Shop all',
+    secondaryTo: '/shop',
+    secondaryTarget: 'shop_all',
+  },
+];
 
 const benefits = [
   { icon: Truck, title: 'Free shipping', note: 'On orders above ₹1,499' },
@@ -117,6 +181,44 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
 
   const welcomeName = user ? (user.name || user.email).split(' ')[0] : '';
 
+  const [activePromo, setActivePromo] = useState(0);
+  const [promoHeld, setPromoHeld] = useState(false);
+  const [promoStopped, setPromoStopped] = useState(false);
+  const [copiedPromo, setCopiedPromo] = useState('');
+  const promoDragX = useRef<number | null>(null);
+
+  const showPromo = (index: number) => setActivePromo((index + promos.length) % promos.length);
+
+  useEffect(() => {
+    if (promoHeld || promoStopped) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => setActivePromo((current) => (current + 1) % promos.length), 7000);
+    return () => window.clearInterval(timer);
+  }, [activePromo, promoHeld, promoStopped]);
+
+  const onPromoTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    promoDragX.current = event.touches[0]?.clientX ?? null;
+  };
+  const onPromoTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    if (promoDragX.current === null) return;
+    const endX = event.changedTouches[0]?.clientX ?? promoDragX.current;
+    const delta = endX - promoDragX.current;
+    promoDragX.current = null;
+    if (Math.abs(delta) > 45) setActivePromo((current) => (current + (delta < 0 ? 1 : -1) + promos.length) % promos.length);
+  };
+
+  const copyPromoCode = async (code: string) => {
+    trackEvent('home_promo_code_copy', { code });
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedPromo(code);
+      toast(`Coupon ${code} copied to clipboard!`);
+      setTimeout(() => setCopiedPromo((current) => (current === code ? '' : current)), 2500);
+    } catch {
+      toast(`Use code ${code} at checkout.`);
+    }
+  };
+
   const copyCoupon = async () => {
     trackEvent('home_coupon_copy', { code: 'SPIDY10' });
     try {
@@ -148,6 +250,116 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
           const Icon = benefit.icon;
           return <div className="home-trust-item" key={benefit.title}><Icon size={20} strokeWidth={1.6}/><div><strong>{benefit.title}</strong><span>{benefit.note}</span></div></div>;
         })}
+      </section>
+
+      <section className="lookbook-section home-promo-banner" aria-label="Current offers" data-look="cargo">
+        <div
+          className="promo-carousel"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Current offers"
+          onMouseEnter={() => setPromoHeld(true)}
+          onMouseLeave={() => setPromoHeld(false)}
+          onFocus={() => setPromoHeld(true)}
+          onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPromoHeld(false); }}
+        >
+          <div className="promo-viewport" onTouchStart={onPromoTouchStart} onTouchEnd={onPromoTouchEnd}>
+            <div className="promo-track" style={{ transform: `translate3d(-${activePromo * 100}%, 0, 0)` }}>
+              {promos.map((promo, index) => {
+                const isActive = index === activePromo;
+                const copied = copiedPromo === promo.code;
+                return (
+                  <article
+                    key={promo.id}
+                    className={`promo-card promo-slide ${isActive ? 'is-active' : ''}`}
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`${index + 1} of ${promos.length}: ${promo.title}`}
+                    aria-hidden={!isActive}
+                  >
+                    <div className="promo-media">
+                      <img loading="lazy" src={promo.image} alt={promo.alt} />
+                    </div>
+                    <div className="promo-content">
+                      <div className="promo-eyebrow">
+                        <Sparkles size={15} />
+                        <span>{promo.eyebrow}</span>
+                      </div>
+                      <h2>{promo.title}</h2>
+                      <p className="promo-description">{promo.description}</p>
+                      <div className="promo-coupon-strip">
+                        <div className="promo-coupon-box">
+                          <span className="promo-coupon-label">USE CODE</span>
+                          <code className="promo-coupon-code">{promo.code}</code>
+                        </div>
+                        <button
+                          type="button"
+                          className={`promo-copy-btn ${copied ? 'copied' : ''}`}
+                          onClick={() => void copyPromoCode(promo.code)}
+                          aria-label={`Copy coupon code ${promo.code}`}
+                          tabIndex={isActive ? 0 : -1}
+                        >
+                          {copied ? <><Check size={14} /> COPIED</> : <><Copy size={14} /> COPY CODE</>}
+                        </button>
+                      </div>
+                      <div className="promo-actions">
+                        <Link
+                          className="promo-cta-btn"
+                          to={promo.ctaTo}
+                          tabIndex={isActive ? 0 : -1}
+                          onClick={() => trackEvent('home_promo_cta', { target: promo.ctaOffer, offer: promo.id })}
+                        >
+                          {promo.ctaLabel} <ArrowRight size={17} />
+                        </Link>
+                        <Link
+                          className="promo-secondary-link"
+                          to={promo.secondaryTo}
+                          tabIndex={isActive ? 0 : -1}
+                          onClick={() => trackEvent('home_promo_cta', { target: promo.secondaryTarget, offer: promo.id })}
+                        >
+                          {promo.secondaryLabel}
+                        </Link>
+                      </div>
+                      <div className="promo-perks">
+                        <span><Truck size={14} /> Free delivery</span>
+                        <span><RotateCcw size={14} /> Easy exchange</span>
+                        <span><ShieldCheck size={14} /> COD</span>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+          <div className="promo-controls">
+            <button type="button" className="promo-arrow" onClick={() => showPromo(activePromo - 1)} aria-label="Previous offer">
+              <ChevronLeft size={16} />
+            </button>
+            <div className="promo-dots" role="group" aria-label="Choose an offer">
+              {promos.map((promo, index) => (
+                <button
+                  key={promo.id}
+                  type="button"
+                  className={`promo-dot ${index === activePromo ? 'is-active' : ''}`}
+                  aria-label={`Show offer ${index + 1}: ${promo.title}`}
+                  aria-pressed={index === activePromo}
+                  onClick={() => showPromo(index)}
+                />
+              ))}
+            </div>
+            <button type="button" className="promo-arrow" onClick={() => showPromo(activePromo + 1)} aria-label="Next offer">
+              <ChevronRight size={16} />
+            </button>
+            <button
+              type="button"
+              className="promo-play"
+              onClick={() => setPromoStopped((stopped) => !stopped)}
+              aria-label={promoStopped ? 'Resume offer slideshow' : 'Pause offer slideshow'}
+            >
+              {promoStopped ? <Play size={12} /> : <Pause size={12} />}
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="lookbook-section category-index" aria-labelledby="category-heading" data-look="olive">
@@ -228,7 +440,7 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
       </section>
 
       <section className="lookbook-section home-store" aria-labelledby="store-heading" data-look="cargo">
-        <div className="home-store-photo"><img loading="lazy" src="/images/store-hello.webp?v=4" alt="Inside the Spidy Clothing store"/></div>
+        <div className="home-store-photo"><img loading="lazy" src="/images/store-hello.webp?v=5" alt="Inside the Spidy Clothing store"/></div>
         <div className="home-store-copy">
           <h2 id="store-heading">Come say hello.</h2>
           <p>Feel the fabrics, try the fits, and meet the team behind Spidy.</p>

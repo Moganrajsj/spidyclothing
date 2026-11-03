@@ -8,16 +8,20 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "start": "node server/index.js",
-    "db:migrate": "node --env-file=.env.local server/migrate.js && node --env-file=.env.local server/admin-migrate.js && node --env-file=.env.local server/auth-migrate.js",
+    "db:migrate": "node --env-file=.env.local server/migrate.js && node --env-file=.env.local server/admin-migrate.js && node --env-file=.env.local server/auth-migrate.js && node --env-file=.env.local server/email-migrate.js",
+    "db:backup": "node --env-file=.env.local server/backup-db.js",
+    "db:optimize-indexes": "node --env-file=.env.local server/optimize-indexes.js",
     "admin:setup": "node --env-file=.env.local server/setup-admin.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.2",
     "@vitejs/plugin-react": "^4.3.4",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.11.0",
     "lucide-react": "^0.468.0",
     "multer": "^2.5.0",
     "mysql2": "^3.24.6",
+    "nodemailer": "^10.3.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.91.0",
@@ -26,6 +30,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",

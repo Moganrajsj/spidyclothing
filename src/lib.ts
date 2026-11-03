@@ -1,4 +1,5 @@
 export const formatPrice = (value: number) => `₹${value.toLocaleString('en-IN')}`;
+export const FALLBACK_PRODUCT_IMAGE = '/images/product-placeholder.svg';
 export const categoryLabels: Record<string, string> = {
   shirts: 'Shirts', pants: 'Pants', 't-shirts': 'T-Shirts', 'track-pants': 'Track Pants',
   shorts: 'Shorts', hoodies: 'Hoodies', shoes: 'Shoes', watches: 'Watches', accessories: 'Accessories',

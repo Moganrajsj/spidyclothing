@@ -25,6 +25,7 @@ type StoreValue = {
   updateProfile: (details: { name: string; phone: string }) => Promise<void>;
   googleSignIn: (next?: string) => void;
   getOrders: () => Promise<OrderDetails[]>; getOrder: (orderNumber: string) => Promise<OrderDetails>;
+  cancelOrder: (orderNumber: string, reason?: string) => Promise<void>;
   toast: (message: string) => void;
 };
 const StoreContext = createContext<StoreValue | null>(null);
@@ -172,8 +173,15 @@ export function StoreProvider({ children }: PropsWithChildren) {
   }, [toast]);
   const getOrders = useCallback(async () => (await apiRequest<{ orders: OrderDetails[] }>('/orders')).orders, []);
   const getOrder = useCallback(async (orderNumber: string) => (await apiRequest<{ order: OrderDetails }>(`/orders/${encodeURIComponent(orderNumber)}`)).order, []);
+  const cancelOrder = useCallback(async (orderNumber: string, reason?: string) => {
+    await apiRequest<{ ok: boolean }>(`/orders/${encodeURIComponent(orderNumber)}/cancel`, {
+      method: 'POST',
+      body: { reason },
+    });
+    toast('Order cancelled successfully.');
+  }, [toast]);
 
-  const value = useMemo(() => ({ cart, wishlist, notices, user, authLoading, addToCart, removeFromCart, updateQuantity, toggleWishlist, moveToWishlist, clearCart, createOrder, login, register, logout, updateProfile, googleSignIn, getOrders, getOrder, toast }), [cart, wishlist, notices, user, authLoading, addToCart, removeFromCart, updateQuantity, toggleWishlist, moveToWishlist, clearCart, createOrder, login, register, logout, updateProfile, googleSignIn, getOrders, getOrder, toast]);
+  const value = useMemo(() => ({ cart, wishlist, notices, user, authLoading, addToCart, removeFromCart, updateQuantity, toggleWishlist, moveToWishlist, clearCart, createOrder, login, register, logout, updateProfile, googleSignIn, getOrders, getOrder, cancelOrder, toast }), [cart, wishlist, notices, user, authLoading, addToCart, removeFromCart, updateQuantity, toggleWishlist, moveToWishlist, clearCart, createOrder, login, register, logout, updateProfile, googleSignIn, getOrders, getOrder, cancelOrder, toast]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 

@@ -11,9 +11,25 @@ const send = (res, status, body) => {
 };
 
 function requestOrigin(req, env) {
-  const forwarded = req.headers['x-forwarded-proto']?.split(',')[0]?.trim();
-  const protocol = forwarded || (env.NODE_ENV === 'production' ? 'https' : 'http');
-  return (env.APP_ORIGIN || `${protocol}://${req.headers.host}`).replace(/\/$/, '');
+  const appOrigin = (env.APP_ORIGIN || '').trim().replace(/\/$/, '');
+  const isLocalAppOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(appOrigin);
+  const isProd = env.NODE_ENV === 'production';
+
+  const forwardedProto = req.headers['x-forwarded-proto']?.split(',')[0]?.trim();
+  const protocol = forwardedProto || (isProd ? 'https' : 'http');
+  const forwardedHost = req.headers['x-forwarded-host']?.split(',')[0]?.trim();
+  const host = forwardedHost || req.headers.host;
+
+  // In production, never return a localhost origin even if APP_ORIGIN was mistakenly set to localhost
+  if (host && (isProd || !appOrigin || isLocalAppOrigin)) {
+    return `${protocol}://${host}`.replace(/\/$/, '');
+  }
+
+  if (appOrigin && (!isProd || !isLocalAppOrigin)) {
+    return appOrigin;
+  }
+
+  return `${protocol}://${host || 'spidyclothing.com'}`.replace(/\/$/, '');
 }
 
 function safeNext(value) {

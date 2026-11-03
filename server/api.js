@@ -3,11 +3,15 @@ import { promisify } from 'node:util';
 import { parseJson } from './db.js';
 import { createAdminApi } from './admin-api.js';
 import { handleGoogleAuth } from './google-auth.js';
+import { thumbnailUrl } from './image-store.js';
+import { sendOrderConfirmationEmail, sendOrderCancellationEmail } from './email.js';
+// FIX 3 – Distributed rate limiting (replaces in-memory Map).
+import { createRateLimiter } from './rate-limit.js';
 
 const scrypt = promisify(scryptCallback);
 const SESSION_COOKIE = 'spidy_session';
 const SESSION_DAYS = 30;
-const authAttempts = new Map();
+// FIX 3: authAttempts Map removed – now handled by the distributed rate limiter.
 
 const send = (res, status, body, headers = {}) => {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers });
@@ -36,27 +40,54 @@ async function readBody(req) {
   try { return JSON.parse(raw); } catch { throw Object.assign(new Error('Invalid JSON body.'), { status: 400 }); }
 }
 
-function validateOrigin(req, env) {
-  const origin = req.headers.origin;
-  if (!origin) return true;
-  const protocol = req.headers['x-forwarded-proto']?.split(',')[0]?.trim() || (env.NODE_ENV === 'production' ? 'https' : 'http');
-  const expected = env.APP_ORIGIN || `${protocol}://${req.headers.host}`;
-  return origin === expected;
-}
+export function validateOrigin(req, env = process.env) {
+  // If modern browser verifies this is an internal same-origin request
+  if (req.headers['sec-fetch-site'] === 'same-origin') return true;
 
-function rateLimit(req, res) {
-  const now = Date.now();
-  const ip = req.socket.remoteAddress || 'unknown';
-  const current = authAttempts.get(ip);
-  if (!current || current.resetAt < now) {
-    authAttempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
-    return true;
+  const raw = req.headers.origin || req.headers.referer;
+  if (!raw) return true; // Non-browser / same-origin without origin headers
+
+  let originHost = '';
+  try {
+    const parsed = new URL(raw.trim());
+    originHost = parsed.host.toLowerCase();
+  } catch {
+    return false;
   }
-  current.count += 1;
-  if (current.count <= 12) return true;
-  send(res, 429, { error: 'Too many attempts. Please try again in a few minutes.' });
+
+  // 1. Direct match with current request host or forwarded host
+  const reqHost = (req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase();
+  if (reqHost && originHost === reqHost) return true;
+
+  // 2. Direct match with configured APP_ORIGIN (if set)
+  if (env.APP_ORIGIN) {
+    const cleanAppOrigin = env.APP_ORIGIN.trim().replace(/\/$/, '');
+    try {
+      if (originHost === new URL(cleanAppOrigin).host.toLowerCase()) return true;
+    } catch {}
+  }
+
+  // 3. Known production and store domains for SPIDY CLOTHING
+  const allowedHosts = [
+    'spidyclothing.com',
+    'www.spidyclothing.com',
+    'spidyclothing.in',
+    'www.spidyclothing.in',
+  ];
+  if (allowedHosts.includes(originHost)) return true;
+
+  // 4. Any Vercel deployment preview domain (*.vercel.app)
+  if (originHost.endsWith('.vercel.app')) return true;
+
+  // 5. Local development origins
+  if (originHost.startsWith('localhost') || originHost.startsWith('127.0.0.1')) return true;
+
   return false;
 }
+
+// FIX 3 – The old rateLimit() function used an in-memory Map that was not
+// shared across Vercel instances. It is removed here; the distributed rate
+// limiter from rate-limit.js is used instead inside createApiHandler().
 
 async function passwordHash(password) {
   const salt = randomBytes(16);
@@ -103,19 +134,30 @@ async function listProducts(pool, slug = null) {
     : await pool.query('SELECT * FROM products WHERE is_active = TRUE ORDER BY created_at, id');
   if (!rows.length) return slug ? null : [];
   const ids = rows.map((row) => row.id);
-  const [sizes] = await pool.query(`SELECT product_id, size_name AS name, SUM(stock) AS stock FROM product_variants WHERE product_id IN (${ids.map(() => '?').join(',')}) AND is_available=TRUE GROUP BY product_id,size_name ORDER BY size_name`, ids);
+  const placeholders = ids.map(() => '?').join(',');
+  const [sizes] = await pool.query(`SELECT product_id, size_name AS name, SUM(stock) AS stock FROM product_variants WHERE product_id IN (${placeholders}) AND is_available=TRUE GROUP BY product_id,size_name ORDER BY size_name`, ids);
   const sizesByProduct = new Map();
   for (const size of sizes) {
     if (!sizesByProduct.has(size.product_id)) sizesByProduct.set(size.product_id, []);
     sizesByProduct.get(size.product_id).push({ name: size.name, stock: Number(size.stock) });
   }
-  const result = rows.map((row) => ({
-    id: row.id, slug: row.slug, name: row.name, category: row.category, fit: row.fit,
-    price: Number(row.price), oldPrice: Number(row.old_price), badge: row.badge,
-    colors: parseJson(row.colors, []), sizes: sizesByProduct.get(row.id) || [],
-    images: parseJson(row.images, []), rating: Number(row.rating), reviewCount: Number(row.review_count),
-    description: row.description, fabricCare: row.fabric_care, subcategory: row.subcategory || '',
-  }));
+  const [imageRows] = await pool.query(`SELECT product_id, secure_url FROM product_images WHERE product_id IN (${placeholders}) ORDER BY position,id`, ids);
+  const imagesByProduct = new Map();
+  for (const image of imageRows) {
+    if (!imagesByProduct.has(image.product_id)) imagesByProduct.set(image.product_id, []);
+    imagesByProduct.get(image.product_id).push(image.secure_url);
+  }
+  const result = rows.map((row) => {
+    const legacy = parseJson(row.images, []);
+    const images = imagesByProduct.get(row.id)?.length ? imagesByProduct.get(row.id) : legacy;
+    return {
+      id: row.id, slug: row.slug, name: row.name, category: row.category, fit: row.fit,
+      price: Number(row.price), oldPrice: Number(row.old_price), badge: row.badge,
+      colors: parseJson(row.colors, []), sizes: sizesByProduct.get(row.id) || [],
+      images, thumbnails: images.map(thumbnailUrl), rating: Number(row.rating), reviewCount: Number(row.review_count),
+      description: row.description, fabricCare: row.fabric_care, subcategory: row.subcategory || '',
+    };
+  });
   return slug ? result[0] || null : result;
 }
 
@@ -138,12 +180,30 @@ async function replaceCart(pool, customerId, items) {
     normalized.set(key, { productId, size, color, quantity: (normalized.get(key)?.quantity || 0) + quantity });
   }
   if ([...normalized.values()].some((item) => item.quantity > 99)) throw Object.assign(new Error('Item quantities cannot exceed 99.'), { status: 400 });
+
+  // FIX 5 – Cart Lock Optimization:
+  // The original code acquired FOR UPDATE row-locks on product_variants during
+  // routine debounced cart syncs (every 350ms per the frontend).  This caused
+  // unnecessary lock contention when multiple customers were shopping the same
+  // product simultaneously, leading to MySQL lock wait timeouts.
+  //
+  // Cart sync is an optimistic operation: we validate current availability with
+  // a standard non-locking read.  If a variant sells out between this check and
+  // actual checkout, createOrder() will catch it with a strict FOR UPDATE lock
+  // at the moment of stock reservation.  This is the correct transactional
+  // boundary – we must not hold row locks during the 350ms debounce window.
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
+    // Non-locking availability read (no FOR UPDATE).
     for (const item of normalized.values()) {
-      const [[variant]] = await connection.execute(`SELECT pv.stock,p.is_active,pv.is_available FROM product_variants pv JOIN products p ON p.id=pv.product_id
-        WHERE pv.product_id=? AND pv.size_name=? AND pv.color=? FOR UPDATE`, [item.productId, item.size, item.color]);
+      const [[variant]] = await connection.execute(
+        `SELECT pv.stock, p.is_active, pv.is_available
+         FROM product_variants pv
+         JOIN products p ON p.id = pv.product_id
+         WHERE pv.product_id = ? AND pv.size_name = ? AND pv.color = ?`,
+        [item.productId, item.size, item.color]
+      );
       if (!variant || !variant.is_active || !variant.is_available || Number(variant.stock) < item.quantity) {
         throw Object.assign(new Error('A selected size or color is no longer available. Please review your cart.'), { status: 409 });
       }
@@ -183,7 +243,7 @@ async function replaceWishlist(pool, customerId, productIds) {
 
 function checkoutError(message, status = 400) { return Object.assign(new Error(message), { status }); }
 
-async function createOrder(pool, customer, body) {
+async function createOrder(pool, customer, body, env = process.env) {
   const name = String(body.name || '').trim();
   const phone = String(body.phone || '').replace(/\D/g, '');
   const address = String(body.address || '').trim();
@@ -236,6 +296,24 @@ async function createOrder(pool, customer, body) {
     await connection.execute('DELETE FROM cart_items WHERE customer_id = ?', [customer.id]);
     await connection.execute('UPDATE customers SET name = ?, phone = ? WHERE id = ?', [name, phone, customer.id]);
     await connection.commit();
+
+    // FIX 2 – Email Delivery Reliability:
+    // Previously this was a fire-and-forget `void` promise.  On Vercel
+    // serverless the container is frozen immediately after res.end() executes,
+    // so unawaited promises are terminated before SMTP can complete.
+    //
+    // We now await the email with a 5-second safety timeout:
+    //   • The timeout prevents checkout from stalling if Hostinger SMTP is down.
+    //   • A failed email NEVER rolls back the order (the commit has already run).
+    //   • Success/failure is recorded in order_email_logs via sendOrderConfirmationEmail().
+    const orderIdForEmail = orderResult.insertId;
+    await Promise.race([
+      sendOrderConfirmationEmail({ pool, orderId: orderIdForEmail, env }),
+      new Promise((resolve) => setTimeout(resolve, 5000)),
+    ]).catch((err) => {
+      console.error('[email] Order confirmation dispatch error:', err.message);
+    });
+
     return {
       orderNumber, name, email: customer.email, phone, paymentMethod: 'cod', paymentStatus: 'cod_due',
       orderStatus: 'pending', subtotal, discount, shipping, total,
@@ -245,6 +323,71 @@ async function createOrder(pool, customer, body) {
     await connection.rollback();
     throw error;
   } finally { connection.release(); }
+}
+
+async function cancelCustomerOrder(pool, customer, orderNumber, reason = '', env = process.env) {
+  const connection = await pool.getConnection();
+  let cancelledOrderId = null;
+  try {
+    await connection.beginTransaction();
+    const [[order]] = await connection.execute(
+      'SELECT id, order_number, order_status FROM orders WHERE customer_id = ? AND (order_number = ? OR id = ?) FOR UPDATE',
+      [customer.id, String(orderNumber), Number(orderNumber) || -1]
+    );
+    if (!order) throw checkoutError('Order not found.', 404);
+    if (['cancelled', 'returned'].includes(order.order_status)) {
+      throw checkoutError('This order has already been cancelled.', 409);
+    }
+    if (['shipped', 'out_for_delivery', 'delivered'].includes(order.order_status)) {
+      throw checkoutError('Orders that have already shipped cannot be cancelled online. Please contact support at support@spidyclothing.com.', 409);
+    }
+
+    const [items] = await connection.execute(
+      `SELECT oi.id, oi.quantity, oi.restocked, oi.variant_id 
+       FROM order_items oi 
+       WHERE oi.order_id = ? FOR UPDATE`,
+      [order.id]
+    );
+
+    for (const item of items) {
+      if (item.variant_id && !item.restocked) {
+        await connection.execute('UPDATE product_variants SET stock = stock + ? WHERE id = ?', [item.quantity, item.variant_id]);
+        await connection.execute(
+          `INSERT INTO inventory_movements (variant_id, order_id, delta, reason, note) VALUES (?, ?, ?, 'cancel_restock', 'Customer order cancellation')`,
+          [item.variant_id, order.id, item.quantity]
+        );
+        await connection.execute('UPDATE order_items SET restocked = TRUE WHERE id = ?', [item.id]);
+      }
+    }
+
+    await connection.execute('UPDATE orders SET order_status = "cancelled" WHERE id = ?', [order.id]);
+    await connection.commit();
+    cancelledOrderId = order.id;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  if (cancelledOrderId) {
+    // FIX 2 – Await cancellation email with a 5-second safety timeout.
+    // The order cancellation has already been committed; SMTP failure must not
+    // affect the API response or trigger any rollback.
+    await Promise.race([
+      sendOrderCancellationEmail({
+        pool,
+        orderId: cancelledOrderId,
+        reason: reason || 'Customer requested cancellation',
+        env,
+      }),
+      new Promise((resolve) => setTimeout(resolve, 5000)),
+    ]).catch((err) => {
+      console.error('[email] Customer cancellation dispatch error:', err.message);
+    });
+  }
+
+  return { ok: true, orderNumber, orderStatus: 'cancelled' };
 }
 
 async function getOrder(pool, customerId, orderNumber = null) {
@@ -266,6 +409,8 @@ async function getOrder(pool, customerId, orderNumber = null) {
 
 export function createApiHandler(pool, env = process.env) {
   const secureCookie = env.NODE_ENV === 'production';
+  // FIX 3 – Distributed rate limiter (Upstash Redis with in-process fallback).
+  const checkRateLimit = createRateLimiter(env);
   const adminApi = createAdminApi(pool, env);
   return async function handleApi(req, res) {
     if (req.url?.split('?')[0].startsWith('/api/admin')) return adminApi(req, res);
@@ -276,10 +421,24 @@ export function createApiHandler(pool, env = process.env) {
         await pool.query('SELECT 1');
         return send(res, 200, { ok: true, database: 'connected' });
       }
-      if (method === 'GET' && url.pathname === '/api/products') return send(res, 200, { products: await listProducts(pool) });
+      // FIX 4 – Product Catalog Caching:
+      // Public product listings are safe to cache on Vercel's CDN edge.
+      // s-maxage=60  → Serve from CDN for up to 60 seconds without origin hit.
+      // stale-while-revalidate=300 → After 60s CDN revalidates in the background,
+      //   continuing to serve the stale version (< 5 min old) while fetching fresh.
+      // This reduces Hostinger MySQL load significantly for catalog traffic.
+      // NOTE: Inventory validation at checkout is NOT affected – createOrder()
+      // always queries live stock with FOR UPDATE locks.
+      if (method === 'GET' && url.pathname === '/api/products') {
+        return send(res, 200, { products: await listProducts(pool) }, {
+          'cache-control': 'public, s-maxage=60, stale-while-revalidate=300',
+        });
+      }
       if (method === 'GET' && url.pathname.startsWith('/api/products/')) {
         const product = await listProducts(pool, decodeURIComponent(url.pathname.slice('/api/products/'.length)));
-        return product ? send(res, 200, { product }) : send(res, 404, { error: 'Product not found.' });
+        return product
+          ? send(res, 200, { product }, { 'cache-control': 'public, s-maxage=60, stale-while-revalidate=300' })
+          : send(res, 404, { error: 'Product not found.' });
       }
       if (await handleGoogleAuth({ req, res, url, pool, env, secureCookie, makeSession, cookieValue })) return;
       if (method === 'POST' && url.pathname === '/api/coupons/validate') {
@@ -296,8 +455,13 @@ export function createApiHandler(pool, env = process.env) {
         return send(res, 200, { code, discount: Math.min(discount,subtotal) });
       }
 
-      const isAuthAttempt = method === 'POST' && ['/api/auth/register', '/api/auth/login'].includes(url.pathname);
-      if (isAuthAttempt && !rateLimit(req, res)) return;
+      // FIX 3 – Replace old synchronous in-memory rateLimit() with the distributed checker.
+      if (method === 'POST' && url.pathname === '/api/auth/login') {
+        if (!await checkRateLimit(req, res, 'customer_login')) return;
+      }
+      if (method === 'POST' && url.pathname === '/api/auth/register') {
+        if (!await checkRateLimit(req, res, 'customer_register')) return;
+      }
       if (method !== 'GET' && !validateOrigin(req, env)) return send(res, 403, { error: 'Request origin is not allowed.' });
       const body = method === 'GET' ? {} : await readBody(req);
 
@@ -372,11 +536,16 @@ export function createApiHandler(pool, env = process.env) {
       }
       if (url.pathname === '/api/orders' && method === 'POST') {
         requireCustomer(customer);
-        return send(res, 201, { order: await createOrder(pool, customer, body) });
+        return send(res, 201, { order: await createOrder(pool, customer, body, env) });
       }
       if (url.pathname === '/api/orders' && method === 'GET') {
         requireCustomer(customer);
         return send(res, 200, { orders: await getOrder(pool, customer.id) });
+      }
+      if (url.pathname.startsWith('/api/orders/') && url.pathname.endsWith('/cancel') && method === 'POST') {
+        requireCustomer(customer);
+        const orderNumber = decodeURIComponent(url.pathname.slice('/api/orders/'.length, -'/cancel'.length));
+        return send(res, 200, await cancelCustomerOrder(pool, customer, orderNumber, body?.reason, env));
       }
       if (url.pathname.startsWith('/api/orders/') && method === 'GET') {
         requireCustomer(customer);

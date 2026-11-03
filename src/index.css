@@ -322,4 +322,706 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
   .home-skeleton-track span{height:260px}
 }
 
+/* ---------------------------------------------------------------------------
+   Legal pages + cookie consent
+--------------------------------------------------------------------------- */
+.legal-page{padding-block:54px 72px}
+.legal-hero{max-width:780px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.legal-hero .eyebrow{margin:0 0 10px;color:var(--crimson);font-size:10px;font-weight:700;letter-spacing:.18em}
+.legal-hero h1{margin:0;color:var(--navy);font:700 clamp(34px,5vw,58px)/1.02 Poppins,sans-serif;letter-spacing:-.03em;text-transform:uppercase}
+.legal-summary{margin:16px 0 0;max-width:65ch;color:var(--muted);font-size:16px;line-height:1.65}
+.legal-meta{display:flex;flex-wrap:wrap;gap:10px 24px;margin-top:20px;color:#58657b;font-size:12px;font-weight:600;letter-spacing:.02em}
+.legal-meta span{display:inline-flex;align-items:center;gap:6px}
+.legal-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:start;padding-top:34px}
+.legal-toc{position:sticky;top:100px;padding:18px;border:1px solid var(--line);border-radius:10px;background:#fafbfd}
+.legal-toc-title{display:block;margin-bottom:10px;color:#8d98aa;font-size:9px;font-weight:700;letter-spacing:.16em}
+.legal-toc ol{margin:0;padding:0;list-style:none;display:grid;gap:7px}
+.legal-toc a{display:block;color:#4b576c;font-size:12px;line-height:1.4}
+.legal-toc a:hover{color:var(--crimson)}
+.legal-help{display:flex;gap:9px;margin-top:18px;padding-top:15px;border-top:1px solid var(--line);color:#7b8699;font-size:11px}
+.legal-help svg{flex:0 0 auto;margin-top:2px;color:var(--crimson)}
+.legal-help span{display:grid;gap:3px}
+.legal-help strong{color:#26344c;font-size:11px}
+.legal-help a{color:var(--navy);text-decoration:underline;text-underline-offset:2px}
+.legal-body{max-width:78ch}
+.legal-body section{padding:0 0 30px;margin:0 0 30px;border-bottom:1px solid #edf0f5;scroll-margin-top:110px}
+.legal-body section:last-child{border-bottom:0;margin-bottom:0}
+.legal-body h2{margin:0 0 12px;color:var(--navy);font:700 clamp(20px,2.4vw,26px)/1.2 Poppins,sans-serif;letter-spacing:-.015em}
+.legal-body p{margin:0 0 12px;color:#4b576c;font-size:15px;line-height:1.75}
+.legal-body ul{margin:0 0 14px;padding:0 0 0 20px;display:grid;gap:8px}
+.legal-body li{color:#4b576c;font-size:15px;line-height:1.65}
+.legal-body li::marker{color:var(--crimson)}
+.legal-note{margin:16px 0 0!important;padding:13px 15px;border-left:3px solid var(--crimson);border-radius:0 7px 7px 0;background:#fff5f6;color:#5a3b42!important;font-size:13.5px!important;line-height:1.65!important}
+.legal-related{margin-top:52px;padding:28px 30px;border-radius:12px;background:var(--navy);color:#fff;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:22px}
+.legal-related .eyebrow{margin:0;color:#ff9c98;font-size:9px;font-weight:700;letter-spacing:.18em}
+.legal-related h2{margin:6px 0 0;font:600 24px Poppins,sans-serif}
+.legal-related-links{display:flex;flex-wrap:wrap;gap:9px}
+.legal-related-links a{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 14px;border:1px solid #ffffff38;border-radius:999px;color:#fff;font-size:12px;transition:background .15s,border-color .15s}
+.legal-related-links a:hover{background:#ffffff14;border-color:#ffffff70}
 
+.footer-legal{margin:30px 0 0;padding:22px 0 0;border-top:1px solid #ffffff26;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px}
+.footer-legal-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+.footer-legal-links a,.footer-legal-links button{padding:0;border:0;background:none;color:#d7dbe3;font-size:12px;line-height:1.4;text-decoration:none;transition:color .15s}
+.footer-legal-links a:hover,.footer-legal-links button:hover{color:#ff9c98;text-decoration:underline;text-underline-offset:3px}
+.footer-legal p{margin:0;color:#9aa6bd;font-size:11px;line-height:1.5}
+.footer-legal p a{color:#d7dbe3;text-decoration:underline;text-underline-offset:3px}
+
+.cookie-banner{position:fixed;z-index:120;left:50%;bottom:22px;transform:translateX(-50%);width:min(1120px,calc(100% - 40px));padding:18px 20px;border:1px solid #ffffff1f;border-radius:12px;background:#0a1a3f;color:#fff;box-shadow:0 18px 50px #0a1a3f4d;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.cookie-banner-copy{max-width:72ch}
+.cookie-banner-copy strong{display:block;margin-bottom:5px;font:600 15px Poppins,sans-serif}
+.cookie-banner-copy p{margin:0;color:#d7dbe3;font-size:12px;line-height:1.6}
+.cookie-banner-copy a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.cookie-banner-actions{display:flex;flex-wrap:wrap;gap:8px;flex:0 0 auto}
+.cookie-btn{min-height:38px;padding:0 15px;border:1px solid #ffffff42;border-radius:7px;background:transparent;color:#fff;font:600 12px Inter,sans-serif;transition:background .15s,border-color .15s}
+.cookie-btn:hover{background:#ffffff14;border-color:#ffffff80}
+.cookie-btn.primary{border-color:var(--crimson);background:var(--crimson);color:#fff}
+.cookie-btn.primary:hover{background:#c81c31;border-color:#c81c31}
+.cookie-btn.text{border-color:transparent;text-decoration:underline;text-underline-offset:3px}
+.cookie-backdrop{position:fixed;z-index:130;inset:0;display:grid;place-items:center;padding:20px;background:#061027b8;backdrop-filter:blur(4px)}
+.cookie-modal{width:min(620px,100%);max-height:min(88vh,760px);overflow:auto;padding:24px;border-radius:14px;background:#fff;color:var(--ink);box-shadow:0 30px 80px #06102766}
+.cookie-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px}
+.cookie-modal-head .eyebrow{margin:0 0 5px;color:var(--crimson);font-size:9px;font-weight:700;letter-spacing:.16em}
+.cookie-modal-head h2{margin:0;color:var(--navy);font:700 26px Poppins,sans-serif;letter-spacing:-.02em}
+.cookie-close{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:#fff;color:#5a677c;font-size:22px;line-height:1}
+.cookie-close:hover{background:var(--mist)}
+.cookie-modal-lead{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.65}
+.cookie-option{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 0;border-top:1px solid #edf0f5;cursor:pointer}
+.cookie-option>div{display:grid;gap:3px}
+.cookie-option strong{color:#26344c;font-size:13px}
+.cookie-option small{color:#7b8699;font-size:11.5px;line-height:1.5;font-weight:400}
+.cookie-option input{flex:0 0 auto;width:18px;height:18px;accent-color:var(--crimson)}
+.cookie-locked{flex:0 0 auto;padding:4px 9px;border-radius:999px;background:#eef2f9;color:#5a677c;font-size:10px;font-weight:700;letter-spacing:.04em}
+.cookie-modal-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:18px;border-top:1px solid #edf0f5}
+.cookie-modal .cookie-btn{color:#26344c;border-color:#d9e0ea}
+.cookie-modal .cookie-btn:hover{background:#f5f7fb;border-color:#b9c4d5}
+.cookie-modal .cookie-btn.primary{border-color:var(--crimson);background:var(--crimson);color:#fff}
+.cookie-modal-note{margin:14px 0 0;color:#8d98aa;font-size:11px;line-height:1.6}
+.cookie-modal-note a{color:var(--navy);text-decoration:underline;text-underline-offset:3px}
+
+@media(max-width:900px){
+  .legal-layout{grid-template-columns:1fr;gap:26px}
+  .legal-toc{position:static;order:2}
+  .legal-body{order:1}
+  .legal-toc ol{grid-template-columns:1fr 1fr;gap:7px 14px}
+}
+@media(max-width:760px){
+  .legal-page{padding-block:34px 56px}
+  .legal-summary{font-size:14px}
+  .legal-body p,.legal-body li{font-size:14px}
+  .cookie-banner{left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));width:auto;transform:none;padding:15px;flex-direction:column;align-items:stretch;gap:13px;border-radius:10px}
+  .cookie-banner-actions{display:grid;grid-template-columns:1fr 1fr}
+  .cookie-banner-actions .cookie-btn.text{grid-column:1/-1}
+  .cookie-modal{max-height:92vh;padding:19px}
+  .cookie-modal-head h2{font-size:22px}
+  .cookie-modal-actions{display:grid;grid-template-columns:1fr}
+  .footer-legal{padding-top:18px}
+  .footer-legal-links{gap:9px 16px}
+  .footer-legal-links a,.footer-legal-links button{font-size:11.5px}
+}
+@media(max-width:520px){
+  .legal-toc ol{grid-template-columns:1fr}
+  .legal-related{padding:22px}
+  .legal-related-links a{width:100%;justify-content:space-between}
+}
+
+/* ==========================================================================
+   Home Promotional Banner (Above Shop By Category)
+   ========================================================================== */
+.home-promo-banner {
+  padding-block: 24px 36px;
+  container-type: inline-size;
+  container-name: promo;
+}
+.promo-carousel {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+.promo-viewport {
+  overflow: hidden;
+  border-radius: 16px;
+  background: #07132E;
+  box-shadow: 0 16px 40px rgba(7, 19, 46, 0.16);
+  touch-action: pan-y;
+}
+.promo-track {
+  display: flex;
+  width: 100%;
+  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+.promo-card {
+  flex: 0 0 100%;
+  display: grid;
+  grid-template-columns: 40% 60%;
+  width: 100%;
+  height: 310px;
+  min-height: 280px;
+  max-height: 320px;
+  margin-inline: auto;
+  background: linear-gradient(135deg, #07132E 0%, #0A1A3F 55%, #132B5C 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+}
+.promo-media {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #07132E;
+}
+.promo-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.promo-card:hover .promo-media img {
+  transform: scale(1.04);
+}
+.promo-content {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  color: #FFFFFF;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+.promo-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #FFB703;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.promo-eyebrow svg {
+  color: #FFB703;
+  flex: 0 0 auto;
+}
+.promo-content h2 {
+  color: #FFFFFF !important;
+  font-size: clamp(32px, 2.4vw, 36px) !important;
+  font-weight: 700 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.035em !important;
+  margin: 0 0 3px !important;
+}
+.promo-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #CBD5E1 !important;
+  font-size: 14px !important;
+  line-height: 1.42 !important;
+  margin: 0 0 6px !important;
+  max-width: 62ch;
+}
+.promo-description strong {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+.promo-coupon-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  padding: 2px 4px 2px 10px;
+  width: fit-content;
+  margin-bottom: 6px;
+  backdrop-filter: blur(8px);
+}
+.promo-coupon-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.promo-coupon-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  color: #94A3B8;
+  text-transform: uppercase;
+}
+.promo-coupon-code {
+  font-family: 'Poppins', ui-monospace, SFMono-Regular, monospace;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  line-height: 1.25;
+  color: #FFFFFF;
+  background: transparent;
+  padding: 0;
+  border: none;
+}
+.promo-copy-btn {
+  background: var(--crimson);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.promo-copy-btn:hover {
+  background: #c91e31;
+  transform: translateY(-1px);
+}
+.promo-copy-btn.copied {
+  background: #16A34A;
+}
+.promo-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 7px;
+  flex-wrap: wrap;
+}
+.promo-cta-btn {
+  background: #FFFFFF !important;
+  color: #0A1A3F !important;
+  font-weight: 700 !important;
+  font-size: 11.5px !important;
+  line-height: 1.2;
+  padding: 7px 13px !important;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.promo-cta-btn:hover {
+  background: #F1F5F9 !important;
+  transform: translateY(-1px);
+}
+.promo-cta-btn svg {
+  color: var(--crimson);
+  transition: transform 0.2s ease;
+}
+.promo-cta-btn:hover svg {
+  transform: translateX(3px);
+}
+.promo-secondary-link {
+  color: #CBD5E1;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+.promo-secondary-link:hover {
+  color: #FFFFFF;
+}
+.promo-perks {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #94A3B8;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 7px;
+  white-space: nowrap;
+}
+.promo-perks span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.promo-perks svg {
+  color: #E02438;
+  flex: 0 0 auto;
+}
+
+/* Carousel controls */
+.promo-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.promo-arrow {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #d8dfea;
+  background: #FFFFFF;
+  color: var(--navy);
+  display: grid;
+  place-items: center;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.promo-arrow:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #FFFFFF;
+}
+.promo-dots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-inline: 4px;
+}
+.promo-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #C2CBD8;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+.promo-dot:hover {
+  background: #8B97A8;
+}
+.promo-dot.is-active {
+  width: 24px;
+  background: var(--navy);
+}
+.promo-play {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #d8dfea;
+  background: transparent;
+  color: #70798A;
+  display: grid;
+  place-items: center;
+}
+.promo-play:hover {
+  color: var(--navy);
+  border-color: var(--navy);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-track {
+    transition: none;
+  }
+  .promo-play {
+    display: none;
+  }
+  .promo-card:hover .promo-media img {
+    transform: none;
+  }
+}
+
+/* The card keeps its 40:60 desktop layout while its container is wide
+   enough. Below that, image and content stack vertically. */
+@supports not (container-type: inline-size) {
+  @media (max-width: 1150px) {
+    .promo-card {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+      border-radius: 16px;
+    }
+    .promo-media {
+      height: 220px;
+      min-height: 220px;
+    }
+    .promo-content {
+      padding: 20px 22px 22px;
+    }
+    .promo-content h2 {
+      font-size: 30px !important;
+    }
+    .promo-description {
+      display: block;
+      overflow: visible;
+    }
+    .promo-perks {
+      flex-wrap: wrap;
+      white-space: normal;
+    }
+  }
+  @media (max-width: 680px) {
+    .promo-card {
+      grid-template-columns: 38% 62%;
+    }
+    .promo-media {
+      height: 100%;
+      min-height: 100%;
+    }
+    .promo-content {
+      padding: 16px 13px;
+    }
+    .promo-content h2 {
+      font-size: 19px !important;
+      line-height: 1.05 !important;
+    }
+    .promo-eyebrow {
+      gap: 5px;
+      font-size: 8.5px;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .promo-eyebrow svg {
+      width: 12px;
+      height: 12px;
+    }
+    .promo-description {
+      font-size: 11.5px !important;
+      line-height: 1.4 !important;
+    }
+    .promo-coupon-strip {
+      width: 100%;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 2px 3px 2px 8px;
+    }
+    .promo-coupon-label {
+      font-size: 7px;
+    }
+    .promo-coupon-code {
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+    .promo-copy-btn {
+      gap: 4px;
+      padding: 5px 7px;
+      font-size: 9px;
+    }
+    .promo-copy-btn svg {
+      width: 11px;
+      height: 11px;
+    }
+    .promo-actions {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 7px;
+    }
+    .promo-cta-btn {
+      font-size: 10.5px !important;
+      padding: 6px 10px !important;
+    }
+    .promo-secondary-link {
+      font-size: 10.5px;
+    }
+    .promo-perks {
+      gap: 4px 7px;
+      padding-top: 6px;
+      font-size: 9.5px;
+    }
+    .promo-perks svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+
+@container promo (max-width: 430px) {
+  .promo-card {
+    grid-template-columns: 38% 62%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    border-radius: 16px;
+  }
+  .promo-media {
+    height: 100%;
+    min-height: 100%;
+  }
+  .promo-content {
+    padding: 16px 13px;
+  }
+  .promo-eyebrow {
+    gap: 5px;
+    font-size: 8.5px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .promo-eyebrow svg {
+    width: 12px;
+    height: 12px;
+  }
+  .promo-content h2 {
+    font-size: 19px !important;
+    line-height: 1.05 !important;
+    min-height: 0;
+    margin-bottom: 4px !important;
+  }
+  .promo-description {
+    display: block;
+    overflow: visible;
+    font-size: 11.5px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 6px !important;
+  }
+  .promo-coupon-strip {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 2px 3px 2px 8px;
+  }
+  .promo-coupon-label {
+    font-size: 7px;
+  }
+  .promo-coupon-code {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .promo-copy-btn {
+    gap: 4px;
+    padding: 5px 7px;
+    font-size: 9px;
+  }
+  .promo-copy-btn svg {
+    width: 11px;
+    height: 11px;
+  }
+  .promo-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+    margin-bottom: 7px;
+  }
+  .promo-cta-btn {
+    font-size: 10.5px !important;
+    padding: 6px 10px !important;
+  }
+  .promo-secondary-link {
+    font-size: 10.5px;
+  }
+  .promo-perks {
+    flex-wrap: wrap;
+    white-space: normal;
+    gap: 4px 7px;
+    padding-top: 6px;
+    font-size: 9.5px;
+  }
+  .promo-perks svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@container promo (max-width: 340px) {
+  .promo-card {
+    grid-template-columns: 36% 64%;
+  }
+  .promo-content {
+    padding: 14px 11px;
+  }
+  .promo-content h2 {
+    font-size: 17px !important;
+  }
+  .promo-description {
+    font-size: 11px !important;
+  }
+  .promo-coupon-code {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .promo-copy-btn {
+    gap: 3px;
+    padding: 5px 4px;
+    font-size: 8px;
+  }
+  .promo-cta-btn {
+    font-size: 10px !important;
+    padding: 5px 8px !important;
+  }
+  .promo-secondary-link {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .promo-coupon-strip {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Phone landscape: give the banner the full content width and keep it a
+   short, wide rectangle rather than a tall box in the narrow column. */
+@media (orientation: landscape) and (max-height: 540px) and (max-width: 1000px) {
+  .home-lookbook {
+    display: flex;
+    flex-direction: column;
+  }
+  .lookbook-stage {
+    position: relative;
+    top: auto;
+    order: 0;
+    width: calc(100% - 24px);
+    height: 38svh;
+    min-height: 220px;
+    max-height: 320px;
+    margin: 12px 12px 0;
+  }
+  .lookbook-stage > img {
+    object-position: 50% 42%;
+  }
+  .lookbook-copy {
+    max-width: none;
+    padding: 0 20px 36px;
+  }
+  .lookbook-intro {
+    min-height: 0;
+    padding: 36px 0 44px;
+  }
+  .lookbook-intro h1 {
+    max-width: 9ch;
+    font-size: clamp(46px, 9vw, 64px);
+  }
+  .lookbook-lead {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+  .lookbook-actions {
+    margin-top: 20px;
+    gap: 14px;
+  }
+  .lookbook-section {
+    padding-block: 40px;
+  }
+  .home-promo-banner {
+    padding-block: 12px 24px;
+  }
+  .promo-card {
+    height: 280px;
+    min-height: 280px;
+    max-height: 280px;
+  }
+  .promo-content {
+    padding: 14px 22px;
+  }
+}

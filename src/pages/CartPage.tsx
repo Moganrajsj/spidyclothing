@@ -137,10 +137,11 @@ function CheckoutSummary({ cart, products, subtotal, discount, total }: { cart: 
 export function OrderSuccessPage() {
   const { state } = useLocation();
   const { orderNumber = '' } = useParams();
-  const { getOrder, user } = useStore();
+  const { getOrder, cancelOrder, user } = useStore();
   const routeOrder = (state as { order?: OrderDetails } | null)?.order || null;
   const [order, setOrder] = useState<OrderDetails | null>(routeOrder);
   const [loading, setLoading] = useState(!routeOrder && Boolean(orderNumber));
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (routeOrder || !orderNumber || !user) return;
@@ -149,7 +150,43 @@ export function OrderSuccessPage() {
     return () => { active = false; };
   }, [routeOrder, orderNumber, user, getOrder]);
 
+  const handleCancel = async () => {
+    if (!order || !window.confirm('Are you sure you want to cancel this order?')) return;
+    try {
+      setCancelling(true);
+      await cancelOrder(order.orderNumber, 'Customer cancelled from order page');
+      setOrder((prev) => (prev ? { ...prev, orderStatus: 'cancelled' } : null));
+    } catch (e) {
+      alert((e as Error).message);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) return <main className="container route-loading"><span className="loading-block"/><span className="loading-block"/></main>;
   if (!order) return <main className="container empty-state"><h1>Order details unavailable.</h1><Link className="button button-primary" to="/account">SIGN IN TO VIEW YOUR ORDERS</Link></main>;
-  return <main className="container success-page"><div className="success-mark"><Check size={30}/></div><p className="eyebrow">ORDER CONFIRMED</p><h1>Thanks for choosing Spidy.</h1><p>Your order is saved. Pay when it arrives.</p><div className="order-id">ORDER ID <strong>{order.orderNumber}</strong></div><div className="success-summary"><h2>ORDER SUMMARY</h2>{order.items.map((item, index) => <div className="summary-row" key={`${item.productId}-${item.size}-${index}`}><span>{item.name} · {item.size} · {item.color} × {item.quantity}</span><span>{formatPrice(item.total)}</span></div>)}<div className="summary-row"><span>Payment method</span><span>CASH ON DELIVERY</span></div><div className="summary-total"><span>TOTAL</span><strong>{formatPrice(order.total)}</strong></div><p className="demo-note">Payment is due on delivery. Order status: {order.orderStatus}.</p></div><div className="success-actions"><Link className="button button-primary" to="/shop">CONTINUE SHOPPING</Link><Link className="button button-outline" to="/account">MY ACCOUNT</Link></div></main>;
+  const isCancelled = order.orderStatus === 'cancelled';
+  return <main className="container success-page">
+    <div className="success-mark" style={isCancelled ? { background: '#FFF1F2', color: '#E02438' } : undefined}>
+      <Check size={30}/>
+    </div>
+    <p className="eyebrow" style={isCancelled ? { color: '#E02438' } : undefined}>
+      {isCancelled ? 'ORDER CANCELLED' : 'ORDER CONFIRMED'}
+    </p>
+    <h1>{isCancelled ? 'This order was cancelled.' : 'Thanks for choosing Spidy.'}</h1>
+    <p>{isCancelled ? 'A confirmation email with refund details has been sent to your email.' : 'Your order is saved. Pay when it arrives.'}</p>
+    <div className="order-id">ORDER ID <strong>{order.orderNumber}</strong></div>
+    <div className="success-summary">
+      <h2>ORDER SUMMARY</h2>
+      {order.items.map((item, index) => <div className="summary-row" key={`${item.productId}-${item.size}-${index}`}><span>{item.name} · {item.size} · {item.color} × {item.quantity}</span><span>{formatPrice(item.total)}</span></div>)}
+      <div className="summary-row"><span>Payment method</span><span>CASH ON DELIVERY</span></div>
+      <div className="summary-total"><span>TOTAL</span><strong>{formatPrice(order.total)}</strong></div>
+      <p className="demo-note">Payment is due on delivery. Order status: <strong style={{ textTransform: 'uppercase' }}>{order.orderStatus}</strong>.</p>
+    </div>
+    <div className="success-actions">
+      <Link className="button button-primary" to="/shop">CONTINUE SHOPPING</Link>
+      {order.orderStatus === 'pending' && <button className="button button-outline" onClick={handleCancel} disabled={cancelling}>{cancelling ? 'Cancelling…' : 'CANCEL ORDER'}</button>}
+      <Link className="button button-outline" to="/account">MY ACCOUNT</Link>
+    </div>
+  </main>;
 }

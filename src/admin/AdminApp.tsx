@@ -4,13 +4,18 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Activity, BadgePercent, BarChart3, Boxes, Check, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, Download, Eye, LayoutDashboard, LogOut, Menu, Package, Plus, Search, Settings, ShieldCheck, ShoppingBag, SlidersHorizontal, Star, Users, X } from 'lucide-react';
-import { adminApi, jsonBody } from './api';
+import { Activity, ArrowLeft, ArrowRight, BadgePercent, BarChart3, Boxes, Check, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, Download, Eye, LayoutDashboard, LogOut, Menu, Package, Plus, Search, Settings, ShieldCheck, ShoppingBag, SlidersHorizontal, Star, UploadCloud, Users, X } from 'lucide-react';
+import { adminApi, adminUpload, jsonBody } from './api';
 import './admin.css';
 
 type Admin={id:number;name:string;email:string;role:string};
 type Category={id:number;parentId:number|null;name:string;slug:string;sortOrder:number;active:boolean};
 type Variant={id?:number;size:string;color:string;sku:string;stock:number;priceOverride?:number|null;available?:boolean};
+type ImageItem={id?:number;url:string;publicId?:string|null;checksum?:string|null;type?:'main'|'gallery';thumbnail?:string};
+const MAX_IMAGES=5;
+const MAX_IMAGE_BYTES=5*1024*1024;
+const ACCEPTED_IMAGE_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
+const imageUrlOf=(image:ImageItem|string)=>typeof image==='string'?image:image?.url||'';
 const nav=[
   {label:'Overview',path:'/admin/dashboard',icon:LayoutDashboard},
   {label:'Products',path:'/admin/products',icon:Package},
@@ -78,6 +83,9 @@ function ProductEditor(){
   const [subOpen,setSubOpen]=useState(false);
   const [newSub,setNewSub]=useState('');
   const [subBusy,setSubBusy]=useState(false);
+  const [uploading,setUploading]=useState(false);
+  const [progress,setProgress]=useState(0);
+  const [dragging,setDragging]=useState(false);
 
   const loadCategories=()=>adminApi<{categories:Category[]}>('/categories')
     .then(r=>setCategories(r.categories.filter(c=>c.active)))
@@ -87,7 +95,7 @@ function ProductEditor(){
     loadCategories();
     if(id)adminApi<{product:any}>(`/products/${id}`).then(r=>{
       const product=r.product;
-      setForm({...product,categoryId:String(product.categoryId||''),subcategoryId:String(product.subcategoryId||''),status:product.product_status,colors:product.colors||[],images:product.images||[],variants:product.variants||[]});
+      setForm({...product,categoryId:String(product.categoryId||''),subcategoryId:String(product.subcategoryId||''),status:product.product_status,colors:product.colors||[],images:(product.images||[]).map((image:any)=>typeof image==='string'?{url:image}:image),variants:product.variants||[]});
       setSelectedColors(product.colors?.length?product.colors:['Black']);
       setPalette(current=>Array.from(new Set([...current,...(product.colors||[])])));
     }).catch(e=>setError(e.message));
@@ -141,26 +149,95 @@ function ProductEditor(){
   const save=async(e:React.FormEvent)=>{
     e.preventDefault();setBusy(true);setError('');
     try{
-      const payload={...form,colors:Array.from(new Set([...(form.colors||[]),...selectedColors,...(form.variants||[]).map((v:Variant)=>v.color)]))};
+      if((form.images||[]).length===0){throw new Error('Add at least one product image before saving.');}
+      if((form.images||[]).length>MAX_IMAGES){throw new Error(`A product can have a maximum of ${MAX_IMAGES} images.`);}
+      const payload={...form,images:(form.images||[]).map((image:ImageItem)=>({url:imageUrlOf(image),publicId:image.publicId||null,checksum:image.checksum||null})),colors:Array.from(new Set([...(form.colors||[]),...selectedColors,...(form.variants||[]).map((v:Variant)=>v.color)]))};
       await adminApi(`/products${id?`/${id}`:''}`,{method:id?'PUT':'POST',body:jsonBody(payload)});
       setToast('Product saved');setTimeout(()=>navigate('/admin/products'),500);
     }catch(e){setError((e as Error).message);}
     finally{setBusy(false);}
   };
 
-  const upload=async(files:FileList|null,mode:'main'|'secondary')=>{
-    if(!files?.length)return;
+  const categoryPayload=(target:FormData)=>{
+    target.append('category',selectedMain?.name||'');
+    if(form.categoryId)target.append('categoryId',String(form.categoryId));
+    if(id)target.append('productId',String(id));
+  };
+
+  const addImages=async(files:FileList|File[]|null)=>{
+    if(uploading)return;
+    const picked=Array.from(files||[]);
+    if(!picked.length)return;
+    const slots=MAX_IMAGES-(form.images||[]).length;
+    if(slots<=0){setError(`This product already has ${MAX_IMAGES} images. Remove one before adding another.`);return;}
+    const accepted:File[]=[];
+    for(const file of picked){
+      if(accepted.length>=slots)break;
+      if(!ACCEPTED_IMAGE_TYPES.includes(file.type)){setError(`${file.name}: only JPG, JPEG, PNG and WebP images are supported.`);continue;}
+      if(file.size>MAX_IMAGE_BYTES){setError(`${file.name} is larger than 5 MB.`);continue;}
+      accepted.push(file);
+    }
+    if(!accepted.length)return;
     const fd=new FormData();
-    Array.from(files).slice(0,mode==='main'?1:8).forEach(f=>fd.append('images',f));
+    accepted.forEach(file=>fd.append('images',file));
+    categoryPayload(fd);
+    setUploading(true);setProgress(0);setError('');
     try{
-      const r=await adminApi<{images:string[]}>('/products/images',{method:'POST',body:fd});
-      if(!r.images.length)return;
-      if(mode==='main')setForm((f:any)=>({...f,images:[r.images[0],...(f.images||[]).slice(1)]}));
-      else setForm((f:any)=>({...f,images:[...(f.images||[]),...r.images].slice(0,8)}));
+      const result=await adminUpload<{images:ImageItem[]}>('/products/images',fd,setProgress);
+      const existing=new Set((form.images||[]).map((image:ImageItem)=>imageUrlOf(image)));
+      const incoming=(result.images||[]).filter(image=>image?.url&&!existing.has(image.url));
+      if(!incoming.length)throw new Error('That image is already in this product gallery.');
+      setForm((f:any)=>({...f,images:[...(f.images||[]),...incoming].slice(0,MAX_IMAGES)}));
+      setToast(`${incoming.length} image${incoming.length===1?'':'s'} uploaded to Cloudinary.`);
+    }catch(e){setError((e as Error).message);}
+    finally{setUploading(false);setProgress(0);}
+  };
+
+  const replaceImage=async(index:number,file?:File)=>{
+    if(!file||uploading)return;
+    if(!ACCEPTED_IMAGE_TYPES.includes(file.type)){setError('Only JPG, JPEG, PNG and WebP images are supported.');return;}
+    if(file.size>MAX_IMAGE_BYTES){setError(`${file.name} is larger than 5 MB.`);return;}
+    const current=form.images?.[index] as ImageItem|undefined;
+    const fd=new FormData();
+    fd.append('images',file);
+    if(current?.publicId)fd.append('oldPublicId',current.publicId);
+    categoryPayload(fd);
+    setUploading(true);setProgress(0);setError('');
+    try{
+      const result=await adminUpload<{image:ImageItem}>('/products/images/replace',fd,setProgress);
+      setForm((f:any)=>({...f,images:(f.images||[]).map((image:ImageItem,position:number)=>position===index?result.image:image)}));
+      setToast('Image replaced. The previous Cloudinary asset was removed.');
+    }catch(e){setError((e as Error).message);}
+    finally{setUploading(false);setProgress(0);}
+  };
+
+  const removeImage=async(index:number)=>{
+    const image=form.images?.[index] as ImageItem|undefined;
+    if(!image)return;
+    if(!image.publicId&&!id){setForm((f:any)=>({...f,images:(f.images||[]).filter((_:ImageItem,position:number)=>position!==index)}));return;}
+    setError('');
+    try{
+      await adminApi('/products/images/delete',{method:'POST',body:jsonBody({publicId:image.publicId||'',url:image.url})});
+      setForm((f:any)=>({...f,images:(f.images||[]).filter((_:ImageItem,position:number)=>position!==index)}));
+      setToast('Image deleted from the product and Cloudinary.');
     }catch(e){setError((e as Error).message);}
   };
-  const makeMain=(index:number)=>setForm((f:any)=>{const images=[...(f.images||[])];const [picked]=images.splice(index,1);return {...f,images:picked?[picked,...images]:images};});
-  const removeImage=(index:number)=>setForm((f:any)=>({...f,images:(f.images||[]).filter((_:string,j:number)=>j!==index)}));
+
+  const makeMain=(index:number)=>setForm((f:any)=>{
+    const images=[...(f.images||[])];
+    const [picked]=images.splice(index,1);
+    return picked?{...f,images:[picked,...images]}:f;
+  });
+
+  const moveImage=(index:number,direction:-1|1)=>setForm((f:any)=>{
+    const images=[...(f.images||[])];
+    const target=index+direction;
+    if(target<0||target>=images.length)return f;
+    [images[index],images[target]]=[images[target],images[index]];
+    return {...f,images};
+  });
+
+  const onDrop=(event:React.DragEvent<HTMLElement>)=>{event.preventDefault();setDragging(false);void addImages(event.dataTransfer.files);};
 
   return <><PageTitle eyebrow="CATALOG / PRODUCT" title={id?'Edit product':'Add product'} description="Product details, images and variant-level stock." action={<button className="admin-secondary" onClick={()=>navigate('/admin/products')}><ChevronLeft size={16}/> Back to products</button>}/><ErrorNotice error={error}/><Toast message={toast}/><form className="product-form" onSubmit={save}>
     <section className="admin-panel form-section">
@@ -185,15 +262,31 @@ function ProductEditor(){
     </section>
 
     <section className="admin-panel form-section">
-      <div className="form-section-head"><span>02</span><div><h2>Product images</h2><p>The main image is shown first. Add up to seven secondary images (5 MB max, JPG, PNG, WebP or AVIF).</p></div></div>
-      <div className="main-image-block">
-        <div className="image-slot-head"><strong>Main image</strong><small>Shown on cards and at the top of the product page.</small></div>
-        {form.images[0]?<div className="main-image-preview"><img src={form.images[0]} alt="Main product"/><span className="main-image-badge">MAIN</span><button type="button" className="image-remove" onClick={()=>removeImage(0)} aria-label="Remove main image"><X size={14}/></button></div>:<label className="upload-zone main-upload"><Plus size={19}/><span>Upload main image</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e=>{void upload(e.target.files,'main');e.target.value='';}}/></label>}
-        {form.images[0]&&<label className="admin-secondary compact replace-upload">Replace main image<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e=>{void upload(e.target.files,'main');e.target.value='';}}/></label>}
-      </div>
-      <div className="image-slot-head secondary-head"><strong>Secondary images</strong><small>{Math.min(7,Math.max(0,form.images.length-1))} of 7 added. The first secondary image is used on hover.</small></div>
-      <label className="upload-zone"><Plus size={19}/><span>Add secondary images</span><input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif" onChange={e=>{void upload(e.target.files,'secondary');e.target.value='';}}/></label>
-      <div className="image-preview-grid">{form.images.slice(1,8).map((src:string,i:number)=><div key={`${src}-${i}`}><img src={src} alt={`Secondary ${i+1}`}/><div className="image-actions"><button type="button" onClick={()=>makeMain(i+1)} title="Set as main image" aria-label="Set as main image"><Star size={12}/></button><button type="button" onClick={()=>removeImage(i+1)} aria-label="Remove image"><X size={14}/></button></div></div>)}</div>
+      <div className="form-section-head"><span>02</span><div><h2>Product images</h2><p>Add 3–5 images per product. JPG, PNG or WebP, 5 MB max. The first image automatically becomes the main image.</p></div></div>
+      <label className={`image-dropzone ${dragging?'dragging':''} ${uploading?'uploading':''}`} onDragOver={event=>{event.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onDrop={onDrop}>
+        <UploadCloud size={26}/>
+        <strong>{uploading?'Uploading to Cloudinary…':'Drag & drop images here'}</strong>
+        <span>or click to browse — up to {MAX_IMAGES} images, 5 MB each</span>
+        <input type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp" disabled={uploading} onChange={e=>{void addImages(e.target.files);e.target.value='';}}/>
+      </label>
+      {uploading&&<div className="upload-progress" role="status" aria-live="polite"><div><span style={{width:`${Math.max(6,progress)}%`}}/></div><small>{progress<100?`Uploading… ${progress}%`:'Optimizing on Cloudinary…'}</small></div>}
+      {form.images.length===0
+        ?<p className="image-empty">No images yet. Upload the first image and it will automatically become the main product image.</p>
+        :<div className="image-editor-grid">{form.images.map((image:ImageItem,index:number)=><figure className="image-editor-card" key={`${image.publicId||image.url}-${index}`}>
+          <div className="image-editor-frame">
+            <img src={image.thumbnail||image.url} alt={`Product image ${index+1}`} loading="lazy" decoding="async"/>
+            {index===0&&<span className="main-image-badge">MAIN</span>}
+            <span className="image-position">{index+1}</span>
+          </div>
+          <figcaption>
+            <button type="button" className="image-tool" onClick={()=>makeMain(index)} disabled={index===0} title="Set as main image" aria-label="Set as main image"><Star size={13}/></button>
+            <button type="button" className="image-tool" onClick={()=>moveImage(index,-1)} disabled={index===0} title="Move left" aria-label="Move image left"><ArrowLeft size={13}/></button>
+            <button type="button" className="image-tool" onClick={()=>moveImage(index,1)} disabled={index===form.images.length-1} title="Move right" aria-label="Move image right"><ArrowRight size={13}/></button>
+            <label className="image-tool replace-upload" title="Replace image"><UploadCloud size={13}/><input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" disabled={uploading} onChange={e=>{const file=e.target.files?.[0];e.target.value='';void replaceImage(index,file);}}/></label>
+            <button type="button" className="image-tool danger" onClick={()=>void removeImage(index)} title="Delete image" aria-label="Delete image"><X size={13}/></button>
+          </figcaption>
+        </figure>)}</div>}
+      <p className="image-hint">Cloudinary folder: <code>SPIDY_CLOTHING/PRODUCTS/{selectedMain?.name?selectedMain.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_'):'…'}</code> · Only image URLs and public IDs are stored in MySQL.</p>
     </section>
 
     <section className="admin-panel form-section">

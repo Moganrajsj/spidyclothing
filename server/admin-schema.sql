@@ -114,3 +114,18 @@ CREATE TABLE IF NOT EXISTS store_settings (
   setting_value JSON NOT NULL,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS product_images (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  product_id VARCHAR(64) NOT NULL,
+  public_id VARCHAR(255) NULL,
+  secure_url VARCHAR(1024) NOT NULL,
+  position INT UNSIGNED NOT NULL DEFAULT 0,
+  image_type ENUM('main','gallery') NOT NULL DEFAULT 'gallery',
+  checksum CHAR(64) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_product_images_public_id (public_id),
+  UNIQUE KEY uq_product_images_checksum (product_id, checksum),
+  INDEX idx_product_images_position (product_id, position),
+  CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

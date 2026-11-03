@@ -4,7 +4,9 @@ import { ArrowRight, Facebook, Instagram, Menu, Search, ShoppingBag, X, Youtube,
 import type { Product } from '../types';
 import { categoryLabels, categorySubcategories, formatPrice, productCategoryLabels } from '../lib';
 import { useStore } from '../context/StoreContext';
+import { useConsent } from '../context/ConsentContext';
 import { useCatalog } from '../context/CatalogContext';
+import { LEGAL_CONTACT, LEGAL_PAGES } from '../content/legal';
 
 export function Announcement() {
   const [visible, setVisible] = useState(true);
@@ -31,6 +33,7 @@ export function Header() {
   </>;
 }
 export function Footer() {
+  const { openPreferences } = useConsent();
   return <footer className="footer">
     <div className="footer-topline"><span>SPIDY CLOTHING · MADE FOR EVERYDAY</span><Link to="/shop?tag=new">Explore the latest <ArrowRight size={16}/></Link></div>
     <div className="footer-main">
@@ -38,19 +41,29 @@ export function Footer() {
         <Link className="brand brand-light" to="/" aria-label="Spidy Clothing home"><span className="brand-mark">S</span><span className="brand-text">SPIDY CLOTHING</span></Link>
         <p>Good clothes for every day.<br/>Find your fit. Make it yours.</p>
         <div className="social-links" aria-label="Follow Spidy Clothing">
-          <a aria-label="Instagram" href="https://instagram.com"><Instagram/></a>
-          <a aria-label="Facebook" href="https://facebook.com"><Facebook/></a>
-          <a aria-label="YouTube" href="https://youtube.com"><Youtube/></a>
+          <a aria-label="Instagram" href="https://www.instagram.com/spidy__clothing?obrf=MTZ2d2lpb3pzb29jcQ==" target="_blank" rel="noopener noreferrer"><Instagram/></a>
+          <a aria-label="Facebook" href="https://facebook.com" target="_blank" rel="noopener noreferrer"><Facebook/></a>
+          <a aria-label="YouTube" href="https://youtube.com/@spidymenswear?si=7exjZ95yDaOThgXR" target="_blank" rel="noopener noreferrer"><Youtube/></a>
         </div>
       </div>
       <nav className="footer-column" aria-label="Shop categories"><h2>Shop</h2><Link to="/shop">Shop all</Link>{Object.entries(categoryLabels).slice(0, 6).map(([slug, label]) => <Link key={slug} to={`/shop/${slug}`}>{label}</Link>)}</nav>
-      <nav className="footer-column" aria-label="Customer care"><h2>Customer care</h2><Link to="/contact">Contact us</Link><Link to="/contact">Help & exchanges</Link><Link to="/contact">Track your order</Link><Link to="/about">About Spidy</Link><Link to="/store">Find a store</Link></nav>
+      <nav className="footer-column" aria-label="Customer care"><h2>Customer care</h2><Link to="/contact">Contact us</Link><Link to="/return-refund-policy">Returns & exchanges</Link><Link to="/contact">Track your order</Link><Link to="/about">About Spidy</Link><Link to="/store">Find a store</Link></nav>
       <div className="footer-note"><span className="footer-note-mark">S/01</span><p>Everyday essentials.<br/>A little more you.</p><Link to="/shop?tag=new">Shop the collection <ArrowRight size={16}/></Link></div>
+    </div>
+    <div className="footer-legal">
+      <nav className="footer-legal-links" aria-label="Legal policies">
+        <Link to="/privacy-policy">Privacy Policy</Link>
+        <Link to="/cookie-policy">Cookie Policy</Link>
+        <Link to="/return-refund-policy">Return, Refund & Exchange Policy</Link>
+        <Link to="/terms-and-conditions">Terms & Conditions</Link>
+        <button type="button" onClick={openPreferences}>Cookie preferences</button>
+      </nav>
+      <p>SPIDY CLOTHING · <a href={`mailto:${LEGAL_CONTACT.email}`}>{LEGAL_CONTACT.email}</a> · Policies last updated {LEGAL_PAGES['privacy-policy'].lastUpdated}</p>
     </div>
     <div className="footer-wordmark" aria-hidden="true">SPIDY</div>
     <div className="footer-bottom">
       <span className="footer-copyright">© 2026 Spidy Clothing</span>
-      <span className="footer-payments">UPI · Cards · Cash on delivery</span>
+      <span className="footer-payments">Cash on delivery · India-wide shipping</span>
         <a className="footer-credit" href="mailto:mjwebdesigns.in@gmail.com"><span className="footer-credit-label">Designed by</span><strong>MJ Web Design</strong></a>
     </div>
   </footer>;
