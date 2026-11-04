@@ -60,7 +60,15 @@ export function Footer() {
       </nav>
       <p>SPIDY CLOTHING · <a href={`mailto:${LEGAL_CONTACT.email}`}>{LEGAL_CONTACT.email}</a> · Policies last updated {LEGAL_PAGES['privacy-policy'].lastUpdated}</p>
     </div>
-    <div className="footer-wordmark" aria-hidden="true">SPIDY</div>
+    <section className="footer-signature" aria-label="Spidy Clothing">
+      <div className="footer-signature-wordmark" aria-hidden="true">
+        <span className="footer-signature-spidy">SPIDY</span>
+        <span className="footer-signature-rule"/>
+        <div className="footer-signature-base">
+          <span className="footer-signature-clothing">CLOTHING</span>
+        </div>
+      </div>
+    </section>
     <div className="footer-bottom">
       <span className="footer-copyright">© 2026 Spidy Clothing</span>
       <span className="footer-payments">Cash on delivery · India-wide shipping</span>

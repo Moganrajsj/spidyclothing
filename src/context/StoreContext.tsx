@@ -20,7 +20,7 @@ type StoreValue = {
   removeFromCart: (productId: string, size: string, color?: string) => void;
   updateQuantity: (productId: string, size: string, quantity: number, color?: string) => void;
   toggleWishlist: (productId: string) => void; moveToWishlist: (productId: string, size: string, color?: string) => void;
-  clearCart: () => void; createOrder: (details: CheckoutDetails) => Promise<OrderDetails>;
+  clearCart: () => void; createOrder: (details: CheckoutDetails, options?: { clearCart?: boolean }) => Promise<OrderDetails>;
   login: (details: Credentials) => Promise<void>; register: (details: Registration) => Promise<void>; logout: () => Promise<void>;
   updateProfile: (details: { name: string; phone: string }) => Promise<void>;
   googleSignIn: (next?: string) => void;
@@ -165,9 +165,9 @@ export function StoreProvider({ children }: PropsWithChildren) {
   const googleSignIn = useCallback((next = '/account') => {
     window.location.href = `/api/auth/google/start?next=${encodeURIComponent(next)}`;
   }, []);
-  const createOrder = useCallback(async (details: CheckoutDetails) => {
+  const createOrder = useCallback(async (details: CheckoutDetails, options?: { clearCart?: boolean }) => {
     const result = await apiRequest<{ order: OrderDetails }>('/orders', { method: 'POST', body: details });
-    setCart([]);
+    if (options?.clearCart !== false) setCart([]);
     toast('Order placed. Payment is due on delivery.');
     return result.order;
   }, [toast]);

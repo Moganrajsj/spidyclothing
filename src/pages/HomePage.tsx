@@ -15,7 +15,7 @@ import { useCatalog } from '../context/CatalogContext';
 
 const RECENT_KEY = 'spidy-recently-viewed';
 const trendingIds = ['tee-crimson', 'tee-oversized', 'shirt-linen', 'shirt-weekend', 'cargo-olive', 'cargo-canvas'];
-const mostSellingIds = ['tee-crimson', 'shirt-oxford', 'jean-slim', 'cargo-utility', 'tee-core', 'jean-dark'];
+const mostSellingIds = ['shirt-oxford', 'jean-slim', 'cargo-utility', 'tee-core', 'jean-dark', 'tee-heavy'];
 const looks = {
   shirt: { src: '/images/campaign-shirt.webp', alt: 'Model in an ivory shirt and black trousers' },
   overshirt: { src: '/images/campaign-overshirt.webp', alt: 'Model in a navy overshirt and relaxed denim' },
@@ -156,17 +156,20 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
   }, [list.length, recentIds.length]);
 
   const ranked = useMemo(() => [...list].sort((a, b) => (b.rating * Math.log10(b.reviewCount + 10)) - (a.rating * Math.log10(a.reviewCount + 10))), [list]);
-  const fillShelf = (ids: string[]) => {
-    const picked = curatedProducts(ids, list);
+  const fillShelf = (ids: string[], count = 6, exclude = new Set<string>()) => {
+    const picked = curatedProducts(ids, list).filter((product) => !exclude.has(product.id)).slice(0, count);
     const seen = new Set(picked.map((product) => product.id));
     for (const product of ranked) {
-      if (picked.length >= 6) break;
-      if (!seen.has(product.id)) { picked.push(product); seen.add(product.id); }
+      if (picked.length >= count) break;
+      if (!seen.has(product.id) && !exclude.has(product.id)) { picked.push(product); seen.add(product.id); }
     }
     return picked;
   };
-  const trendingProducts = fillShelf(trendingIds);
-  const mostSellingProducts = fillShelf(mostSellingIds);
+  const mostSellingProducts = fillShelf(mostSellingIds, 6, new Set(trendingIds));
+  const mostSellingShown = new Set(mostSellingProducts.map((product) => product.id));
+  const trendingProducts = fillShelf(trendingIds, 10, mostSellingShown);
+  const featuredShown = new Set([...trendingProducts, ...mostSellingProducts].map((product) => product.id));
+  const exploreProducts = fillShelf([], 6, featuredShown);
   const newArrivals = (list.some((product) => product.badge === 'NEW') ? list.filter((product) => product.badge === 'NEW') : ranked).slice(0, 5);
   const recentlyViewed = recentIds.map((id) => list.find((product) => product.id === id)).filter((product): product is Product => Boolean(product)).slice(0, 6);
   const ugcProducts = list.filter((product) => product.images[0]).slice(0, 6);
@@ -247,7 +250,7 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
         <div className="home-ticker-track" aria-hidden="true">
           {[0, 1].map((group) => (
             <div className="home-ticker-group" key={group}>
-              {tickerItems.map((item) => <span className="home-ticker-item" key={item}>{item}<i aria-hidden="true"/></span>)}
+              {tickerItems.map((item) => <span className="home-ticker-item changa-one-regular" key={item}>{item}<i aria-hidden="true">*</i></span>)}
             </div>
           ))}
         </div>
@@ -255,6 +258,8 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
       </section>
 
       {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Trending now" description="Pieces getting noticed." products={trendingProducts} onQuickAdd={quickAdd} to="/shop?tag=new" action="Shop new" look="overshirt"/>}
+
+      {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="More to explore" description="More pieces from the rotation." products={exploreProducts} onQuickAdd={quickAdd} to="/shop" action="Shop all" look="olive"/>}
 
       <section className="lookbook-section home-trust" aria-label="Why shop with Spidy" data-look="shirt">
         {benefits.map((benefit) => {

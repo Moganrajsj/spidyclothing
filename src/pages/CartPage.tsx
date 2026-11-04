@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { ArrowRight, Check, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -9,6 +9,8 @@ import type { OrderDetails } from '../context/StoreContext';
 import { useCatalog } from '../context/CatalogContext';
 import { ProductCard } from '../components/ProductCard';
 import { AuthPanel } from '../components/AuthPanel';
+import { TruckButton } from '../components/TruckButton';
+import type { TruckButtonHandle } from '../components/TruckButton';
 import { SectionHeading } from './HomePage';
 
 export function CartPage({ quickAdd }: { quickAdd: (product: Product) => void }) {
@@ -75,10 +77,11 @@ export function CartPage({ quickAdd }: { quickAdd: (product: Product) => void })
 }
 
 export function CheckoutPage() {
-  const { cart, user, authLoading, createOrder } = useStore();
+  const { cart, user, authLoading, createOrder, clearCart } = useStore();
   const { products } = useCatalog();
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState('');
+  const truckRef = useRef<TruckButtonHandle>(null);
   const subtotal = cart.reduce((sum, line) => sum + (products.find((product) => product.id === line.productId)?.price || 0) * line.quantity, 0);
   const code = sessionStorage.getItem('spidy-coupon-v2') || '';
   const discount = Number(sessionStorage.getItem('spidy-coupon-discount-v2') || 0);
@@ -90,16 +93,21 @@ export function CheckoutPage() {
     if (!form.reportValidity()) return;
     const values = new FormData(form);
     setSubmitError('');
+    if (!truckRef.current) return;
     try {
-      const order = await createOrder({
-        name: String(values.get('name') || ''), phone: String(values.get('phone') || ''),
-        address: String(values.get('address') || ''), city: String(values.get('city') || ''),
-        state: String(values.get('state') || ''), pincode: String(values.get('pincode') || ''),
-        paymentMethod: 'cod', couponCode: code,
+      const order = await truckRef.current.run(async () => {
+        const created = await createOrder({
+          name: String(values.get('name') || ''), phone: String(values.get('phone') || ''),
+          address: String(values.get('address') || ''), city: String(values.get('city') || ''),
+          state: String(values.get('state') || ''), pincode: String(values.get('pincode') || ''),
+          paymentMethod: 'cod', couponCode: code,
+        }, { clearCart: false });
+        sessionStorage.removeItem('spidy-coupon-v2');
+        sessionStorage.removeItem('spidy-coupon-discount-v2');
+        return created;
       });
-      sessionStorage.removeItem('spidy-coupon-v2');
-      sessionStorage.removeItem('spidy-coupon-discount-v2');
       navigate(`/order-success/${encodeURIComponent(order.orderNumber)}`, { state: { order } });
+      clearCart();
     } catch (error) { setSubmitError(error instanceof Error ? error.message : 'Unable to place your order.'); }
   };
 
@@ -123,7 +131,7 @@ export function CheckoutPage() {
         <section><h2>Delivery address</h2><div className="form-grid"><label className="wide">Address<input name="address" autoComplete="street-address" required minLength={6} placeholder="House / flat, street, area"/></label><label>City<input name="city" autoComplete="address-level2" required placeholder="City"/></label><label>State<input name="state" autoComplete="address-level1" required placeholder="State"/></label><label>Pincode<input name="pincode" autoComplete="postal-code" required pattern="[1-9][0-9]{5}" maxLength={6} inputMode="numeric" placeholder="6-digit pincode"/></label></div></section>
         <section><h2>Choose how to pay</h2><div className="payment-options"><label className="chosen"><input type="radio" name="payment" value="cod" checked readOnly/><span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span><b>COD</b></label><p className="demo-note">UPI and card payments will be available once online payments are connected.</p></div></section>
         {submitError && <p className="form-error" role="alert">{submitError}</p>}
-        <button className="button button-primary checkout-submit">PLACE COD ORDER · {formatPrice(total)}</button>
+        <TruckButton ref={truckRef} className="checkout-submit" label={`PLACE COD ORDER · ${formatPrice(total)}`} successLabel="Order Placed"/>
       </form>
       <CheckoutSummary cart={cart} products={products} subtotal={subtotal} discount={discount} total={total}/>
     </div>
