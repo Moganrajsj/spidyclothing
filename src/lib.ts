@@ -1,5 +1,23 @@
 export const formatPrice = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 export const FALLBACK_PRODUCT_IMAGE = '/images/product-placeholder.svg';
+
+/**
+ * Ensures any Cloudinary image URL is delivered in optimized WebP format.
+ */
+export function toWebpUrl(url: string, transform = 'c_limit,w_1200,q_auto,f_webp'): string {
+  if (!url) return '';
+  if (url.includes('/image/upload/')) {
+    if (url.includes('/image/upload/c_') || url.includes('/image/upload/f_') || url.includes('/image/upload/w_')) {
+      return url.replace(/\/image\/upload\/[^/]+\//, `/image/upload/${transform}/`);
+    }
+    return url.replace('/image/upload/', `/image/upload/${transform}/`);
+  }
+  return url;
+}
+
+export function thumbnailUrl(url: string): string {
+  return toWebpUrl(url, 'c_fill,w_400,h_500,q_auto,f_webp');
+}
 export const categoryLabels: Record<string, string> = {
   shirts: 'Shirts', pants: 'Pants', 't-shirts': 'T-Shirts', 'track-pants': 'Track Pants',
   shorts: 'Shorts', hoodies: 'Hoodies', shoes: 'Shoes', watches: 'Watches', accessories: 'Accessories',

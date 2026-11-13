@@ -16,6 +16,42 @@ const MAX_IMAGES=5;
 const MAX_IMAGE_BYTES=5*1024*1024;
 const ACCEPTED_IMAGE_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 const imageUrlOf=(image:ImageItem|string)=>typeof image==='string'?image:image?.url||'';
+
+async function convertFileToWebP(file: File, quality = 0.92): Promise<File> {
+  if (file.type === 'image/webp' || file.name.toLowerCase().endsWith('.webp')) {
+    return file;
+  }
+  return new Promise((resolve) => {
+    const img = document.createElement('img');
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          resolve(file);
+          return;
+        }
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        const webpFile = new File([blob], `${baseName}.webp`, { type: 'image/webp' });
+        resolve(webpFile);
+      }, 'image/webp', quality);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
 const nav=[
   {label:'Overview',path:'/admin/dashboard',icon:LayoutDashboard},
   {label:'Products',path:'/admin/products',icon:Package},
@@ -86,6 +122,7 @@ function ProductEditor(){
   const [uploading,setUploading]=useState(false);
   const [progress,setProgress]=useState(0);
   const [dragging,setDragging]=useState(false);
+  const [cloudStatus,setCloudStatus]=useState<{connected?:boolean;cloudName?:string}|null>(null);
 
   const loadCategories=()=>adminApi<{categories:Category[]}>('/categories')
     .then(r=>setCategories(r.categories.filter(c=>c.active)))
@@ -93,6 +130,9 @@ function ProductEditor(){
 
   useEffect(()=>{
     loadCategories();
+    adminApi<{connected?:boolean;cloudName?:string}>('/cloudinary/status')
+      .then(setCloudStatus)
+      .catch(()=>setCloudStatus({connected:false}));
     if(id)adminApi<{product:any}>(`/products/${id}`).then(r=>{
       const product=r.product;
       setForm({...product,categoryId:String(product.categoryId||''),subcategoryId:String(product.subcategoryId||''),status:product.product_status,colors:product.colors||[],images:(product.images||[]).map((image:any)=>typeof image==='string'?{url:image}:image),variants:product.variants||[]});
@@ -178,17 +218,18 @@ function ProductEditor(){
       accepted.push(file);
     }
     if(!accepted.length)return;
-    const fd=new FormData();
-    accepted.forEach(file=>fd.append('images',file));
-    categoryPayload(fd);
     setUploading(true);setProgress(0);setError('');
     try{
+      const webpFiles=await Promise.all(accepted.map(f=>convertFileToWebP(f)));
+      const fd=new FormData();
+      webpFiles.forEach(file=>fd.append('images',file));
+      categoryPayload(fd);
       const result=await adminUpload<{images:ImageItem[]}>('/products/images',fd,setProgress);
       const existing=new Set((form.images||[]).map((image:ImageItem)=>imageUrlOf(image)));
       const incoming=(result.images||[]).filter(image=>image?.url&&!existing.has(image.url));
       if(!incoming.length)throw new Error('That image is already in this product gallery.');
       setForm((f:any)=>({...f,images:[...(f.images||[]),...incoming].slice(0,MAX_IMAGES)}));
-      setToast(`${incoming.length} image${incoming.length===1?'':'s'} uploaded to Cloudinary.`);
+      setToast(`${incoming.length} image${incoming.length===1?'':'s'} converted to WebP & uploaded to Cloudinary.`);
     }catch(e){setError((e as Error).message);}
     finally{setUploading(false);setProgress(0);}
   };
@@ -197,16 +238,17 @@ function ProductEditor(){
     if(!file||uploading)return;
     if(!ACCEPTED_IMAGE_TYPES.includes(file.type)){setError('Only JPG, JPEG, PNG and WebP images are supported.');return;}
     if(file.size>MAX_IMAGE_BYTES){setError(`${file.name} is larger than 5 MB.`);return;}
-    const current=form.images?.[index] as ImageItem|undefined;
-    const fd=new FormData();
-    fd.append('images',file);
-    if(current?.publicId)fd.append('oldPublicId',current.publicId);
-    categoryPayload(fd);
     setUploading(true);setProgress(0);setError('');
     try{
+      const webpFile=await convertFileToWebP(file);
+      const current=form.images?.[index] as ImageItem|undefined;
+      const fd=new FormData();
+      fd.append('images',webpFile);
+      if(current?.publicId)fd.append('oldPublicId',current.publicId);
+      categoryPayload(fd);
       const result=await adminUpload<{image:ImageItem}>('/products/images/replace',fd,setProgress);
       setForm((f:any)=>({...f,images:(f.images||[]).map((image:ImageItem,position:number)=>position===index?result.image:image)}));
-      setToast('Image replaced. The previous Cloudinary asset was removed.');
+      setToast('Image converted to WebP & replaced in Cloudinary.');
     }catch(e){setError((e as Error).message);}
     finally{setUploading(false);setProgress(0);}
   };
@@ -262,14 +304,27 @@ function ProductEditor(){
     </section>
 
     <section className="admin-panel form-section">
-      <div className="form-section-head"><span>02</span><div><h2>Product images</h2><p>Add 3–5 images per product. JPG, PNG or WebP, 5 MB max. The first image automatically becomes the main image.</p></div></div>
+      <div className="form-section-head">
+        <span>02</span>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <h2>Product images</h2>
+            {cloudStatus?.connected && (
+              <span className="status-chip active" style={{ fontSize: '11px', padding: '3px 8px', letterSpacing: '0.04em' }}>
+                ● Cloudinary Connected ({cloudStatus.cloudName}) · WebP Auto-Format Active
+              </span>
+            )}
+          </div>
+          <p>Add 3–5 images per product. JPG, PNG or WebP files are automatically converted and optimized to WebP format. 5 MB max per image.</p>
+        </div>
+      </div>
       <label className={`image-dropzone ${dragging?'dragging':''} ${uploading?'uploading':''}`} onDragOver={event=>{event.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onDrop={onDrop}>
         <UploadCloud size={26}/>
-        <strong>{uploading?'Uploading to Cloudinary…':'Drag & drop images here'}</strong>
-        <span>or click to browse — up to {MAX_IMAGES} images, 5 MB each</span>
+        <strong>{uploading?'Converting to WebP & uploading to Cloudinary…':'Drag & drop images here'}</strong>
+        <span>or click to browse — auto-converts to WebP, up to {MAX_IMAGES} images, 5 MB each</span>
         <input type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp" disabled={uploading} onChange={e=>{void addImages(e.target.files);e.target.value='';}}/>
       </label>
-      {uploading&&<div className="upload-progress" role="status" aria-live="polite"><div><span style={{width:`${Math.max(6,progress)}%`}}/></div><small>{progress<100?`Uploading… ${progress}%`:'Optimizing on Cloudinary…'}</small></div>}
+      {uploading&&<div className="upload-progress" role="status" aria-live="polite"><div><span style={{width:`${Math.max(6,progress)}%`}}/></div><small>{progress<100?`Processing & Uploading… ${progress}%`:'Optimizing on Cloudinary (WebP)…'}</small></div>}
       {form.images.length===0
         ?<p className="image-empty">No images yet. Upload the first image and it will automatically become the main product image.</p>
         :<div className="image-editor-grid">{form.images.map((image:ImageItem,index:number)=><figure className="image-editor-card" key={`${image.publicId||image.url}-${index}`}>
@@ -286,7 +341,7 @@ function ProductEditor(){
             <button type="button" className="image-tool danger" onClick={()=>void removeImage(index)} title="Delete image" aria-label="Delete image"><X size={13}/></button>
           </figcaption>
         </figure>)}</div>}
-      <p className="image-hint">Cloudinary folder: <code>SPIDY_CLOTHING/PRODUCTS/{selectedMain?.name?selectedMain.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_'):'…'}</code> · Only image URLs and public IDs are stored in MySQL.</p>
+      <p className="image-hint">Cloudinary folder: <code>SPIDY_CLOTHING/PRODUCTS/{selectedMain?.name?selectedMain.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_'):'…'}</code> · All product assets are formatted as <strong>WebP</strong>.</p>
     </section>
 
     <section className="admin-panel form-section">

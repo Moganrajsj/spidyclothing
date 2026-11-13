@@ -91,10 +91,13 @@ export async function uploadProductImage(buffer, { env = process.env, category =
     const stream = cloudinary.uploader.upload_stream({
       public_id: publicId,
       resource_type: 'image',
+      format: 'webp',
       overwrite: false,
       unique_filename: false,
       invalidate: true,
-      transformation: [{ width: 1200, height: 1200, crop: 'limit' }],
+      transformation: [
+        { width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'webp' }
+      ],
     }, (error, response) => (error ? reject(error) : resolve(response)));
     stream.end(buffer);
   });
@@ -106,7 +109,7 @@ export async function uploadProductImage(buffer, { env = process.env, category =
     width: Number(result.width) || null,
     height: Number(result.height) || null,
     bytes: Number(result.bytes) || buffer.length,
-    format: result.format || '',
+    format: result.format || 'webp',
   };
 }
 
@@ -129,17 +132,33 @@ export function deliveryUrl(url, transform) {
   const source = String(url || '');
   if (!source.includes('/image/upload/')) return source;
   if (!transform) return source;
+  // If the URL already has a transformation segment right after /image/upload/
+  if (source.includes('/image/upload/c_') || source.includes('/image/upload/f_') || source.includes('/image/upload/w_')) {
+    return source.replace(/\/image\/upload\/[^/]+\//, `/image/upload/${transform}/`);
+  }
   return source.replace('/image/upload/', `/image/upload/${transform}/`);
 }
 
 export function thumbnailUrl(url) {
-  return deliveryUrl(url, 'c_fill,w_400,h_500,q_auto,f_auto');
+  return deliveryUrl(url, 'c_fill,w_400,h_500,q_auto,f_webp');
 }
 
 export function cardUrl(url) {
-  return deliveryUrl(url, 'c_limit,w_800,q_auto,f_auto');
+  return deliveryUrl(url, 'c_limit,w_800,q_auto,f_webp');
 }
 
 export function galleryUrl(url) {
-  return deliveryUrl(url, 'c_limit,w_1200,q_auto,f_auto');
+  return deliveryUrl(url, 'c_limit,w_1200,q_auto,f_webp');
+}
+
+export async function pingCloudinary(env = process.env) {
+  const config = resolveCloudinaryConfig(env);
+  if (!config) return { connected: false, reason: 'missing_config' };
+  try {
+    configure(env);
+    const res = await cloudinary.api.ping();
+    return { connected: res.status === 'ok', cloudName: config.cloud_name };
+  } catch (e) {
+    return { connected: false, error: e.message, cloudName: config.cloud_name };
+  }
 }

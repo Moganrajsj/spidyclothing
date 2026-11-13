@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import { parseJson } from './db.js';
 import { createAdminApi } from './admin-api.js';
 import { handleGoogleAuth } from './google-auth.js';
-import { thumbnailUrl } from './image-store.js';
+import { galleryUrl, thumbnailUrl } from './image-store.js';
 import { sendOrderConfirmationEmail, sendOrderCancellationEmail } from './email.js';
 // FIX 3 – Distributed rate limiting (replaces in-memory Map).
 import { createRateLimiter } from './rate-limit.js';
@@ -154,7 +154,7 @@ async function listProducts(pool, slug = null) {
       id: row.id, slug: row.slug, name: row.name, category: row.category, fit: row.fit,
       price: Number(row.price), oldPrice: Number(row.old_price), badge: row.badge,
       colors: parseJson(row.colors, []), sizes: sizesByProduct.get(row.id) || [],
-      images, thumbnails: images.map(thumbnailUrl), rating: Number(row.rating), reviewCount: Number(row.review_count),
+      images: images.map(galleryUrl), thumbnails: images.map(thumbnailUrl), rating: Number(row.rating), reviewCount: Number(row.review_count),
       description: row.description, fabricCare: row.fabric_care, subcategory: row.subcategory || '',
     };
   });
