@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Product } from '../types';
-import { categoryLabels, formatPrice } from '../lib';
+import { categoryLabels, productCategoryLabels } from '../lib';
 import { apiRequest } from '../lib/api';
 import { trackEvent } from '../lib/analytics';
 import { useStore } from '../context/StoreContext';
@@ -178,7 +178,7 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
   const trendingProducts = fillShelf(trendingIds, 10, mostSellingShown);
   const featuredShown = new Set([...trendingProducts, ...mostSellingProducts].map((product) => product.id));
   const exploreProducts = fillShelf([], 6, featuredShown);
-  const newArrivals = (list.some((product) => product.badge === 'NEW') ? list.filter((product) => product.badge === 'NEW') : ranked).slice(0, 5);
+  const newArrivals = list.some((product) => product.badge === 'NEW') ? list.filter((product) => product.badge === 'NEW') : ranked.slice(0, 5);
   const recentlyViewed = recentIds.map((id) => list.find((product) => product.id === id)).filter((product): product is Product => Boolean(product)).slice(0, 6);
   const ugcProducts = list.filter((product) => product.images[0]).slice(0, 6);
 
@@ -187,6 +187,34 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
     const weighted = list.reduce((sum, product) => sum + product.rating * product.reviewCount, 0);
     return { total, average: total ? weighted / total : 0 };
   }, [list]);
+
+  const [homeCategory, setHomeCategory] = useState<string>('all');
+  const [homeLimit, setHomeLimit] = useState<number>(12);
+
+  const homeCategories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of list) {
+      counts.set(p.category, (counts.get(p.category) || 0) + 1);
+    }
+    const result: { slug: string; label: string; count: number }[] = [];
+    for (const [slug, count] of counts.entries()) {
+      result.push({
+        slug,
+        label: categoryLabels[slug] || (slug in productCategoryLabels ? productCategoryLabels[slug] : slug.toUpperCase()),
+        count,
+      });
+    }
+    return result.sort((a, b) => b.count - a.count);
+  }, [list]);
+
+  const filteredHomeProducts = useMemo(() => {
+    if (homeCategory === 'all') return list;
+    return list.filter((p) => p.category === homeCategory);
+  }, [list, homeCategory]);
+
+  const displayedHomeProducts = useMemo(() => {
+    return filteredHomeProducts.slice(0, homeLimit);
+  }, [filteredHomeProducts, homeLimit]);
 
   const welcomeName = user ? (user.name || user.email).split(' ')[0] : '';
 
@@ -411,14 +439,73 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
 
       {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Most selling" description="Customer favourites in the rotation." products={mostSellingProducts} onQuickAdd={quickAdd} to="/shop" action="Shop all" look="cargo"/>}
 
-      {loading && !list.length ? <SkeletonShelf/> : <section className="lookbook-section arrival-list" aria-labelledby="arrival-heading" data-look="shirt">
-        <div className="section-title-row"><div><h2 id="arrival-heading">Just landed</h2><p>New pieces in the rotation.</p></div><Link to="/shop?tag=new">View all <ArrowRight size={15}/></Link></div>
-        {newArrivals.length ? <div className="arrival-products">{newArrivals.map((product) => <article className="arrival-row" key={product.id}>
-          <Link className="arrival-image" to={`/product/${product.slug}`} aria-label={`View ${product.name}`}><img loading="lazy" src={product.images[0]} alt=""/></Link>
-          <div className="arrival-copy"><Link to={`/product/${product.slug}`}>{product.name}</Link><span>{product.fit} fit</span><strong>{formatPrice(product.price)}</strong></div>
-          <button className="arrival-add" onClick={() => quickAdd(product)} aria-label={`Choose size for ${product.name}`}>+</button>
-        </article>)}</div> : <p className="shelf-empty">New pieces are on the way. Check back soon.</p>}
-      </section>}
+      {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Just landed" description="New pieces in the rotation." products={newArrivals} onQuickAdd={quickAdd} to="/shop?tag=new" action="View all" look="shirt"/>}
+
+      {/* Complete All Products Grid down to Just landed */}
+      <section className="lookbook-section home-all-products" aria-labelledby="home-all-products-heading" data-look="overshirt">
+        <div className="section-title-row">
+          <div>
+            <p className="eyebrow">THE COMPLETE ROTATION</p>
+            <h2 id="home-all-products-heading">All products</h2>
+            <p>Every piece made to repeat. Filter by category or browse the full collection.</p>
+          </div>
+          <Link to="/shop" className="home-all-products-link" onClick={() => trackEvent('home_all_products_click')}>
+            Open full catalog ({list.length} styles) <ArrowRight size={16}/>
+          </Link>
+        </div>
+
+        {/* Category Filter Pills */}
+        <div className="home-catalog-filter-bar" role="tablist" aria-label="Filter products by category">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={homeCategory === 'all'}
+            className={`home-cat-chip ${homeCategory === 'all' ? 'active' : ''}`}
+            onClick={() => { setHomeCategory('all'); setHomeLimit(12); }}
+          >
+            All styles ({list.length})
+          </button>
+          {homeCategories.map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              role="tab"
+              aria-selected={homeCategory === c.slug}
+              className={`home-cat-chip ${homeCategory === c.slug ? 'active' : ''}`}
+              onClick={() => { setHomeCategory(c.slug); setHomeLimit(12); }}
+            >
+              {c.label} ({c.count})
+            </button>
+          ))}
+        </div>
+
+        {/* Product Grid */}
+        <div className="product-grid home-catalog-grid">
+          {displayedHomeProducts.map((product) => (
+            <ProductCard key={product.id} product={product} onQuickAdd={quickAdd}/>
+          ))}
+        </div>
+
+        {filteredHomeProducts.length > homeLimit ? (
+          <div className="home-catalog-load-more">
+            <button
+              type="button"
+              className="button button-outline"
+              onClick={() => setHomeLimit((prev) => prev + 12)}
+            >
+              SHOW MORE PRODUCTS ({filteredHomeProducts.length - homeLimit} MORE)
+            </button>
+          </div>
+        ) : (
+          filteredHomeProducts.length > 8 && (
+            <div className="home-catalog-load-more">
+              <Link to="/shop" className="button button-outline">
+                EXPLORE FULL CATALOG WITH FILTERS <ArrowRight size={15}/>
+              </Link>
+            </div>
+          )
+        )}
+      </section>
 
       {recentlyViewed.length > 0 && <ProductShelf title="Recently viewed" description="Pick up where you left off." products={recentlyViewed} onQuickAdd={quickAdd} to="/shop" action="Shop all" look="shirt"/>}
 
