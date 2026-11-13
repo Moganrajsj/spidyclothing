@@ -23,15 +23,15 @@
 @media(max-width:900px){.mega-menu{width:min(760px,calc(100vw - 32px));left:-20px}}
 
 /* SPIDY Clothing lookbook redesign */
-:root{font-family:Switzer,Arial,sans-serif;color:#101b32;background:#f3f0e8;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;--paper:#f3f0e8;--navy:#0A1A3F;--crimson:#E02438;--ink:#101b32;--muted:#535c69;--line:#d5d1c8;--container:1280px;--radius:0;--shadow:none}
+:root{font-family:var(--font-body);--font-body:Inter,system-ui,sans-serif;--font-ui:Poppins,system-ui,sans-serif;--font-display:'Bebas Neue',Impact,sans-serif;--font-ticker:Anton,Impact,sans-serif;--font-label:Oswald,system-ui,sans-serif;color:#101b32;background:#f3f0e8;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;--paper:#f3f0e8;--navy:#0A1A3F;--crimson:#E02438;--ink:#101b32;--muted:#535c69;--line:#d5d1c8;--container:1280px;--radius:0;--shadow:none}
 html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
 .announcement{min-height:30px;background:var(--navy);color:#fff;font-size:13px;font-weight:400;letter-spacing:0;justify-content:flex-start;padding:4px clamp(18px,4vw,56px)}.announcement button{display:grid;place-items:center;top:3px;right:clamp(14px,4vw,48px);color:#fff}
-.site-header{height:72px;position:sticky;top:0;background:var(--paper);backdrop-filter:none;border:0;border-bottom:0;padding:0 clamp(18px,4vw,56px);z-index:30}.brand{gap:10px}.brand-mark{border-radius:0;background:var(--crimson);font-family:Switzer,Arial,sans-serif}.brand-text{font-family:Switzer,Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-.04em}.brand-text>span{font-family:Switzer,Arial,sans-serif;font-weight:500;letter-spacing:.12em}.desktop-nav{gap:30px;margin-left:40px}.desktop-nav>a,.shop-menu-wrap>a{font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}.icon-button{color:var(--ink)}.count-badge{border-radius:0;background:var(--crimson)}
+.site-header{height:72px;position:sticky;top:0;background:var(--paper);backdrop-filter:none;border:0;border-bottom:0;padding:0 clamp(18px,4vw,56px);z-index:30}.brand{gap:10px}.brand-mark{border-radius:0;background:var(--crimson);font-family:var(--font-ui)}.brand-text{font-family:var(--font-ui);font-size:19px;font-weight:700;letter-spacing:-.04em}.brand-text>span{font-family:var(--font-ui);font-weight:500;letter-spacing:.12em}.desktop-nav{gap:30px;margin-left:40px}.desktop-nav>a,.shop-menu-wrap>a{font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}.icon-button{color:var(--ink)}.count-badge{border-radius:0;background:var(--crimson)}
 .mega-menu{border:0;border-radius:0;box-shadow:none;background:var(--paper)}.mega-feature{border-radius:0;background:#e7e2d7}.mega-menu a{border:0;font-size:13px}.drawer-search{border-radius:0;background:#e7e2d7}.drawer-link{font-size:15px}.drawer-link svg{color:var(--crimson)}
 .home-lookbook{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;min-height:100vh}.lookbook-stage{position:sticky;top:88px;height:calc(100svh - 104px);min-height:560px;margin:16px 0 16px 16px;overflow:hidden;background:var(--navy);isolation:isolate}.lookbook-stage>img{width:100%;height:100%;object-fit:cover;object-position:50% 45%;animation:look-in .55s ease both}.lookbook-wordmark{position:absolute;left:clamp(18px,3vw,44px);bottom:clamp(20px,4vh,48px);color:#fff;font-size:clamp(64px,8vw,136px);font-weight:500;letter-spacing:-.075em;line-height:.75;pointer-events:none}.lookbook-caption{position:absolute;top:23px;left:clamp(18px,3vw,44px);color:#fff;font-size:14px;letter-spacing:.02em}.lookbook-copy{width:100%;max-width:760px;display:grid;grid-template-columns:var(--lookbook-pad-left) minmax(0,1fr) var(--lookbook-pad-right);align-content:start;padding-block:clamp(28px,5vw,72px) 56px;padding-inline:0;--lookbook-pad-left:clamp(28px,5.3vw,82px);--lookbook-pad-right:clamp(18px,4vw,56px)}
 /* Copy padding lives in grid tracks so the ticker can run edge to edge. */
 .lookbook-copy>*{grid-column:2;min-width:0}
-.lookbook-copy>.home-ticker{grid-column:1 / -1}
+
 .lookbook-intro{min-height:calc(100svh - 104px);display:flex;flex-direction:column;justify-content:center;padding-block:30px 64px}.lookbook-overline{font-size:14px;letter-spacing:.04em;margin:0 0 22px}.lookbook-intro h1{max-width:8.7ch;margin:0;color:var(--navy);font-size:clamp(58px,6vw,88px);font-weight:400;letter-spacing:-.065em;line-height:.88;text-wrap:balance}.lookbook-lead{max-width:33ch;margin:26px 0 0;font-size:clamp(18px,1.6vw,22px);line-height:1.4;color:var(--ink)}.lookbook-actions{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:32px}.lookbook-primary{min-height:54px;padding:0 20px;background:var(--crimson);color:#fff;display:inline-flex;align-items:center;gap:22px;font-size:15px;font-weight:500}.lookbook-primary svg{transition:transform .2s ease}.lookbook-primary:hover svg{transform:translateX(4px)}.lookbook-text-link{font-size:15px;text-decoration:underline;text-underline-offset:4px}
 .lookbook-section{padding-block:74px;border-top:1px solid color-mix(in srgb,var(--ink) 20%,transparent)}.lookbook-section h2{margin:0;color:var(--navy);font-size:clamp(34px,3.3vw,48px);font-weight:400;letter-spacing:-.055em;line-height:1;text-wrap:balance}.lookbook-section>p,.section-title-row p{margin:12px 0 0;font-size:16px;line-height:1.5;color:var(--muted)}.category-index-list{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:28px}.category-index-list a{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:18px;border-bottom:1px solid var(--line);transition:color .2s ease}.category-index-list a:hover{color:var(--crimson)}.category-index-list svg{color:var(--crimson)}.section-title-row{display:flex;align-items:end;justify-content:space-between;gap:24px}.section-title-row>a{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:15px;text-decoration:underline;text-underline-offset:4px}.section-title-row>a svg{color:var(--crimson)}
 .arrival-products{margin-top:27px}.arrival-row{display:grid;grid-template-columns:94px minmax(0,1fr) 44px;align-items:center;gap:16px;padding:13px 0;border-top:1px solid var(--line)}.arrival-row:last-child{border-bottom:1px solid var(--line)}.arrival-image{width:94px;height:116px;overflow:hidden;background:#e7e9ec}.arrival-image img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}.arrival-image:hover img{transform:scale(1.04)}.arrival-copy{display:grid;gap:6px}.arrival-copy>a{font-size:17px;font-weight:500}.arrival-copy>span{font-size:14px;color:var(--muted)}.arrival-copy>strong{font-size:16px;font-weight:500}.arrival-add{width:42px;height:42px;background:transparent;border:1px solid var(--ink);color:var(--ink);font-size:26px;font-weight:300;line-height:1;transition:all .2s ease}.arrival-add:hover{background:var(--crimson);border-color:var(--crimson);color:#fff}
@@ -46,9 +46,11 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
 :root{--paper:#f4f4f0}
 .brand-text>span{color:var(--navy)}
 .site-header{border:0}
-.desktop-nav a{font-size:15px!important;text-transform:none;letter-spacing:0}
-.mega-menu{position:fixed;top:102px;left:16px;right:16px;width:auto;max-height:calc(100svh - 116px);overflow:auto;display:none;opacity:1;visibility:visible;transform:none;grid-template-columns:minmax(0,2fr) minmax(180px,1fr)}
-.shop-menu-wrap:hover .mega-menu,.shop-menu-wrap:focus-within .mega-menu{display:grid;transform:none}
+.desktop-nav>a,.desktop-nav>.shop-menu-wrap>a{font-size:15px!important;text-transform:none;letter-spacing:0}
+.mega-menu{position:fixed;top:102px;left:50%;right:auto;width:min(720px,calc(100vw - 48px));max-height:min(64vh,520px);padding:20px;gap:20px;border:1px solid var(--line);border-radius:8px;box-shadow:0 18px 40px rgba(10,26,63,.14);overflow:auto;display:none;opacity:1;visibility:visible;transform:translateX(-50%);grid-template-columns:minmax(0,1.6fr) minmax(160px,.8fr)}
+.mega-categories{max-height:none;overflow:visible}
+.mega-subcategories a{font-size:11px}
+.shop-menu-wrap:hover .mega-menu,.shop-menu-wrap:focus-within .mega-menu{display:grid;transform:translateX(-50%)}
 .home-lookbook{grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr)}
 .lookbook-stage{margin-left:clamp(18px,4vw,56px)}
 .lookbook-media{position:absolute;inset:0}
@@ -229,22 +231,28 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
 .home-trust-item strong{display:block;color:var(--ink);font-size:13px;font-weight:500;line-height:1.3}
 .home-trust-item span{display:block;margin-top:2px;color:var(--muted);font-size:12px;line-height:1.35}
 
-.home-ticker{width:100%;margin:0;padding-block:22px;padding-inline:0;overflow:hidden;background:var(--navy);border-block:1px solid color-mix(in srgb,#fff 18%,transparent);--ticker-gap:clamp(22px,3.4vw,46px)}
-.home-ticker-track{display:flex;width:max-content;animation:home-ticker-scroll 28s linear infinite}
-.home-ticker-group{display:flex;flex:none;align-items:center;gap:var(--ticker-gap);padding-right:var(--ticker-gap)}
-.changa-one-regular{font-family:"Changa One",sans-serif;font-weight:400;font-style:normal}
-.changa-one-regular-italic{font-family:"Changa One",sans-serif;font-weight:400;font-style:italic}
-.home-ticker-item{display:inline-flex;align-items:center;gap:var(--ticker-gap);color:#fff;font-family:"Changa One",sans-serif;font-size:clamp(22px,3vw,38px);font-weight:400;letter-spacing:-.03em;line-height:1;white-space:nowrap}
-.home-ticker-item:nth-child(2){color:var(--crimson)}
-.home-ticker-item i{flex:none;color:var(--crimson);font-size:.7em;font-style:normal;line-height:1}
-.home-ticker-item:nth-child(2) i{color:#fff}
-@media(hover:hover) and (pointer:fine){.home-ticker:hover .home-ticker-track{animation-play-state:paused}}
-@keyframes home-ticker-scroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+/* Home ticker: running brand tagline with a reversed offers strip. */
+.home-ticker{--ticker-red:#e10b17;--ticker-dark:#0d0d0d;--ticker-speed:38s;width:100%;margin:0;padding:0;overflow:hidden;background:var(--ticker-dark)}
+.home-ticker-row{display:flex;overflow:hidden;white-space:nowrap;user-select:none}
+.home-ticker-track{display:flex;flex:none;align-items:center;min-width:100%;animation:home-ticker-run var(--ticker-speed) linear infinite}
+.home-ticker-row.rev .home-ticker-track{animation-direction:reverse;animation-duration:calc(var(--ticker-speed) * 1.4)}
+.home-ticker-row:hover .home-ticker-track,.home-ticker-row:focus-within .home-ticker-track{animation-play-state:paused}
+.home-ticker ul{display:flex;align-items:center;flex:none;margin:0;padding:0;list-style:none}
+.home-ticker li{display:flex;align-items:center;gap:clamp(14px,2.2vw,28px);padding-right:clamp(14px,2.2vw,28px)}
+.home-ticker li::after{content:"";flex:none;width:clamp(8px,1vw,12px);height:clamp(8px,1vw,12px);transform:rotate(45deg);background:currentColor}
+.home-ticker-main{background:var(--ticker-red);color:#fff;padding:clamp(10px,1.6vw,16px) 0}
+.home-ticker-main li{font:400 clamp(22px,3.4vw,40px)/1 var(--font-ticker);letter-spacing:.06em;text-transform:uppercase}
+.home-ticker-main li::after{background:var(--ticker-dark)}
+.home-ticker-main em{font-style:italic;color:var(--ticker-dark)}
+.home-ticker-sub{background:var(--ticker-dark);color:#fff;padding:10px 0;border-top:1px solid #2a2a2a}
+.home-ticker-sub li{font:500 clamp(12px,1.4vw,15px)/1 var(--font-label);letter-spacing:.22em;text-transform:uppercase}
+.home-ticker-sub li::after{background:var(--ticker-red);width:8px;height:8px}
+.home-ticker-sub b{color:#ffd166;font-weight:600}
+@keyframes home-ticker-run{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media(prefers-reduced-motion:reduce){
-  .home-ticker-track{animation:none!important;width:100%;justify-content:center}
-  .home-ticker-group:last-child{display:none}
-  .home-ticker-group{flex-wrap:wrap;justify-content:center;gap:12px;padding-right:0}
-  .home-ticker-item{flex-wrap:wrap;justify-content:center;gap:12px;font-size:clamp(16px,2.6vw,24px);white-space:normal}
+  .home-ticker-track{animation:none}
+  .home-ticker-row{overflow-x:auto}
+  .home-ticker-track[aria-hidden="true"]{display:none}
 }
 
 .home-offer{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:26px 30px!important;background:var(--navy);color:#fff;border:0}
@@ -252,7 +260,7 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
 .home-offer-copy strong{display:block;color:#fff;font-size:clamp(24px,2.6vw,34px);font-weight:400;letter-spacing:-.04em;line-height:1.05}
 .home-offer-copy>span{display:block;margin-top:8px;color:#c9d2e3;font-size:13px}
 .home-coupon{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.home-coupon code{padding:13px 18px;border:1px dashed #ffffff80;color:#fff;font:500 16px/1 Switzer,Arial,sans-serif;letter-spacing:.14em}
+.home-coupon code{padding:13px 18px;border:1px dashed #ffffff80;color:#fff;font:500 16px/1 var(--font-ui);letter-spacing:.14em}
 .home-coupon button{display:inline-flex;align-items:center;gap:8px;padding:13px 16px;border:0;background:var(--crimson);color:#fff;font-size:11px;font-weight:500;letter-spacing:.08em}
 .home-coupon button:hover{background:#c41c30}
 
@@ -1173,10 +1181,10 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
    Motion: reveal -> slide -> hold -> repeat (9s loop). */
 .footer-signature{position:relative;margin:44px 0 28px;overflow:hidden}
 .footer-signature-wordmark{display:flex;flex-direction:column;color:#fff}
-.footer-signature-spidy{display:block;font-family:Switzer,Arial,sans-serif;font-size:clamp(64px,16vw,340px);font-weight:700;line-height:.82;letter-spacing:-.02em;white-space:nowrap;clip-path:inset(0 100% 0 0);animation:footer-signature-reveal 9s cubic-bezier(.22,1,.36,1) infinite}
+.footer-signature-spidy{display:block;font-family:var(--font-display);font-size:clamp(64px,16vw,340px);font-weight:400;line-height:.82;letter-spacing:.01em;white-space:nowrap;clip-path:inset(0 100% 0 0);animation:footer-signature-reveal 9s cubic-bezier(.22,1,.36,1) infinite}
 .footer-signature-rule{display:block;height:2px;margin:-10px 0 22px;background:#526996;transform:scaleX(0);transform-origin:left center;animation:footer-signature-rule 9s cubic-bezier(.22,1,.36,1) infinite}
 .footer-signature-base{display:flex;align-items:baseline;justify-content:space-between;gap:24px}
-.footer-signature-clothing{display:block;font-family:Switzer,Arial,sans-serif;font-size:clamp(26px,6.9vw,150px);font-weight:700;line-height:1;letter-spacing:.22em;padding-left:.06em;color:#ED1F38;white-space:nowrap;opacity:0;animation:footer-signature-slide 9s cubic-bezier(.22,1,.36,1) infinite}
+.footer-signature-clothing{display:block;font-family:var(--font-display);font-size:clamp(26px,6.9vw,150px);font-weight:400;line-height:1;letter-spacing:.22em;padding-left:.06em;color:#ED1F38;white-space:nowrap;opacity:0;animation:footer-signature-slide 9s cubic-bezier(.22,1,.36,1) infinite}
 
 @keyframes footer-signature-reveal{
   0%,2%{clip-path:inset(0 100% 0 0)}
@@ -1426,4 +1434,76 @@ html{scroll-padding-top:86px}body{background:var(--paper);color:var(--ink)}
   .truck-button.animation{--rx:0deg;--br:8px}
   .truck-button.animation .default{--o:0}
   .truck-button.animation.done .success{--o:1;--offset:0}
+}
+
+/* Home hero: let the campaign image scroll away with the page on desktop. */
+@media(min-width:681px){
+  .home-lookbook{display:block;min-height:0}
+  .home-hero{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);align-items:stretch}
+  .home-hero .lookbook-stage{position:relative;top:auto;height:auto;min-height:0;aspect-ratio:auto;margin:16px 0 16px clamp(18px,4vw,56px)}
+  .home-hero .lookbook-copy{max-width:none;padding-block:0}
+  .home-content{display:block;width:min(1280px,100%);max-width:none;margin-inline:auto;padding-inline:clamp(18px,4vw,56px)}
+}
+
+/* Home shelves now use the full page width below the hero. */
+@media(min-width:1100px){
+  .home-content .product-shelf-track>.product-card{flex-basis:calc(25% - 10.5px)}
+}
+@media(min-width:900px) and (max-width:1099px){
+  .home-content .product-shelf-track>.product-card{flex-basis:calc(33.333% - 9.34px)}
+}
+@media(min-width:681px) and (max-width:899px){
+  .home-content .product-shelf-track>.product-card{flex-basis:calc(50% - 7px)}
+}
+
+/* Keep short phone-landscape screens stacked instead of using the desktop split. */
+@media(orientation:landscape) and (max-height:540px) and (max-width:1000px){
+  .home-lookbook{display:flex;flex-direction:column}
+  .home-hero{display:block}
+  .home-hero .lookbook-stage{width:calc(100% - 24px);height:38svh;min-height:220px;max-height:320px;margin:12px 12px 0}
+  .home-content{width:100%;max-width:none;padding-inline:20px}
+}
+
+/* ============================================================
+   Typography system
+   Inter   -> body copy, product info, forms, general UI
+   Poppins -> brand, nav, buttons, account/legal/admin headings
+   Bebas   -> display headings (hero, sections, promo, footer)
+   Anton   -> ticker main strip + heavy promo headlines
+   Oswald  -> overlines/eyebrows, ticker sub-strip, footer labels
+   ============================================================ */
+
+/* Display: Bebas Neue is condensed, so reset weight and ease the tracking. */
+.lookbook-intro h1,
+.lookbook-section h2,
+.cargo-offer h2,
+.home-offer-copy strong,
+.footer-wordmark{
+  font-family:var(--font-display);
+  font-weight:400;
+  letter-spacing:.02em;
+}
+.lookbook-intro h1{max-width:none;line-height:.92}
+.lookbook-section h2{line-height:.98}
+.cargo-offer h2{line-height:.98}
+.home-offer-copy strong{line-height:1}
+.footer-wordmark{letter-spacing:.02em}
+
+/* Heavy promo headline keeps the Anton voice used by the ticker. */
+.deal-content h2{font-family:var(--font-ticker);font-weight:400;letter-spacing:.02em;line-height:1}
+
+/* Small uppercase labels. */
+.eyebrow,
+.lookbook-overline,
+.footer-column h2,
+.footer h4{
+  font-family:var(--font-label);
+}
+
+/* Brand, navigation and buttons. */
+.desktop-nav>a,
+.shop-menu-wrap>a,
+.button,
+.lookbook-primary{
+  font-family:var(--font-ui);
 }

@@ -97,7 +97,15 @@ const values = [
   { icon: BadgeIndianRupee, title: 'Honest pricing', note: 'Direct-to-you pricing with no inflated tags and no seasonal markups.' },
 ];
 
-const tickerItems = ['SPIDY CLOTHING', 'MADE FOR EVERYDAY', 'GOOD CLOTHES. GOOD DAYS.'];
+const tickerMainItems = ['Dress Well', 'Be Spidy!', 'Style', 'Comfort', 'Confidence', 'Quality is our first priority'];
+
+const tickerOfferItems: Array<{ key: string; content: ReactNode }> = [
+  { key: 'shipping', content: 'Free shipping on orders above ₹999' },
+  { key: 'code', content: <>Use code <b>SPIDY10</b> &amp; get 10% off</> },
+  { key: 'returns', content: 'Easy returns within 7 days' },
+  { key: 'payments', content: 'Secure payments' },
+  { key: 'sale', content: 'Up to 50% off' },
+];
 
 const fits = [
   { name: 'Slim', note: 'Close through the chest and waist with a clean, tapered leg.' },
@@ -231,32 +239,48 @@ export function HomePage({ quickAdd }: { quickAdd: (product: Product) => void })
   };
 
   return <main className="home-lookbook">
-    <aside className="lookbook-stage" aria-label="Spidy Clothing campaign">
-      <div className="lookbook-media">{Object.entries(looks).map(([key, item], index) => <img key={key} className={look === key ? 'active' : ''} src={item.src} alt={look === key ? item.alt : ''} aria-hidden={look !== key} loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'low'} decoding="async"/>)}</div>
-    </aside>
-    <div className="lookbook-copy">
-      <section className="lookbook-intro" data-look="shirt">
-        <p className="lookbook-overline">{user ? `WELCOME BACK, ${welcomeName.toUpperCase()}` : 'SPIDY CLOTHING · EVERYDAY MENSWEAR'}</p>
-        <h1>Spidy<br/>Clothing</h1>
-        <p className="lookbook-lead">Men’s shirts, tees, pants, and more for repeat wear.</p>
-        <div className="lookbook-actions">
-          <Link className="lookbook-primary" to="/shop?tag=new" onClick={() => trackEvent('home_hero_cta', { target: 'new_arrivals' })}>Shop new arrivals <ArrowRight size={18}/></Link>
-          <Link className="lookbook-text-link" to="/shop" onClick={() => trackEvent('home_hero_cta', { target: 'browse_all' })}>Browse everything</Link>
-          <Link className="lookbook-text-link lookbook-account-link" to="/account" onClick={() => trackEvent('home_hero_cta', { target: user ? 'account' : 'sign_in' })}>{user ? 'Your account' : 'Sign in'}</Link>
-        </div>
-      </section>
+    <div className="home-hero">
+      <aside className="lookbook-stage" aria-label="Spidy Clothing campaign">
+        <div className="lookbook-media">{Object.entries(looks).map(([key, item], index) => <img key={key} className={look === key ? 'active' : ''} src={item.src} alt={look === key ? item.alt : ''} aria-hidden={look !== key} loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'low'} decoding="async"/>)}</div>
+      </aside>
+      <div className="lookbook-copy">
+        <section className="lookbook-intro" data-look="shirt">
+          <p className="lookbook-overline">{user ? `WELCOME BACK, ${welcomeName.toUpperCase()}` : 'SPIDY CLOTHING · EVERYDAY MENSWEAR'}</p>
+          <h1>Spidy<br/>Clothing</h1>
+          <p className="lookbook-lead">Men’s shirts, tees, pants, and more for repeat wear.</p>
+          <div className="lookbook-actions">
+            <Link className="lookbook-primary" to="/shop?tag=new" onClick={() => trackEvent('home_hero_cta', { target: 'new_arrivals' })}>Shop new arrivals <ArrowRight size={18}/></Link>
+            <Link className="lookbook-text-link" to="/shop" onClick={() => trackEvent('home_hero_cta', { target: 'browse_all' })}>Browse everything</Link>
+            <Link className="lookbook-text-link lookbook-account-link" to="/account" onClick={() => trackEvent('home_hero_cta', { target: user ? 'account' : 'sign_in' })}>{user ? 'Your account' : 'Sign in'}</Link>
+          </div>
+        </section>
+      </div>
+    </div>
 
-      <section className="home-ticker" aria-label="Spidy Clothing">
-        <div className="home-ticker-track" aria-hidden="true">
-          {[0, 1].map((group) => (
-            <div className="home-ticker-group" key={group}>
-              {tickerItems.map((item) => <span className="home-ticker-item changa-one-regular" key={item}>{item}<i aria-hidden="true">*</i></span>)}
-            </div>
-          ))}
-        </div>
-        <span className="sr-only">{tickerItems.join(' · ')}</span>
-      </section>
+    <section className="home-ticker" aria-label="Spidy Menswear highlights">
+      <div className="home-ticker-row home-ticker-main">
+        {[0, 1].map((copy) => (
+          <div className="home-ticker-track" key={copy} aria-hidden={copy === 1 || undefined}>
+            <ul>
+              {tickerMainItems.map((item) => (
+                <li key={item}>{item === 'Be Spidy!' ? <>Be <em>Spidy!</em></> : item}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <div className="home-ticker-row home-ticker-sub rev">
+        {[0, 1].map((copy) => (
+          <div className="home-ticker-track" key={copy} aria-hidden={copy === 1 || undefined}>
+            <ul>
+              {tickerOfferItems.map((item) => <li key={item.key}>{item.content}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
 
+    <div className="lookbook-copy home-content">
       {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="Trending now" description="Pieces getting noticed." products={trendingProducts} onQuickAdd={quickAdd} to="/shop?tag=new" action="Shop new" look="overshirt"/>}
 
       {loading && !list.length ? <SkeletonShelf/> : <ProductShelf title="More to explore" description="More pieces from the rotation." products={exploreProducts} onQuickAdd={quickAdd} to="/shop" action="Shop all" look="olive"/>}
